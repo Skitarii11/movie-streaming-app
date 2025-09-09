@@ -47,7 +47,7 @@ const WatchPage = () => {
   return (
     <SafeAreaView className="bg-primary flex-1">
       <FlatList
-        data={movieData.episodeUrls}
+        data={movieData.episodeUrl}
         keyExtractor={(item, index) => `${item}-${index}`}
         renderItem={({ item, index }) => (
           <TouchableOpacity

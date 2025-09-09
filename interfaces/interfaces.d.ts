@@ -5,9 +5,10 @@ interface Movie {
   posterUrl: string;
   releaseYear: number;
   rating: number;
+  price: number;
   type: 'movie' | 'series';
-  streamUrl?: string;
-  episodeUrls: string[];
+  trailerUrl?: string;
+  episodeUrl: string[];
   $collectionId: string;
   $databaseId: string;
   $createdAt: string;

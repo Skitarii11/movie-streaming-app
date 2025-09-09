@@ -5,17 +5,15 @@ import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
 
 import useFetch from "@/services/usefetch";
-import { fetchMovies } from "@/services/api";
-import { updateSearchCount } from "@/services/appwrite";
-import { searchMovies } from "@/services/appwrite";
+import { searchMovies, updateSearchCount } from "@/services/appwrite";
 
 import SearchBar from "@/components/SearchBar";
-import MovieDisplayCard from "@/components/MovieCard";
+import MovieCard from "@/components/MovieCard";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-   const {
+  const {
     data: movies = [],
     loading,
     error,
@@ -29,9 +27,14 @@ const Search = () => {
 
   // Debounced search effect
   useEffect(() => {
-     const timeoutId = setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       if (searchQuery.trim()) {
-        await loadMovies();
+        // Now 'newMovies' will be correctly typed as 'Movie[] | null'
+        const newMovies = await loadMovies();
+
+        if (newMovies && newMovies.length > 0) {
+          await updateSearchCount(searchQuery.trim(), newMovies[0]);
+        }
       } else {
         reset();
       }
@@ -52,7 +55,7 @@ const Search = () => {
         className="px-5"
         data={movies as Movie[]}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <MovieDisplayCard {...item} />}
+        renderItem={({ item }) => <MovieCard {...item} />}
         numColumns={3}
         columnWrapperStyle={{
           justifyContent: "flex-start",
@@ -62,10 +65,10 @@ const Search = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
           <>
+            {/* ... Your Header JSX ... */}
             <View className="w-full flex-row justify-center mt-20 items-center">
               <Image source={icons.logo} className="w-12 h-10" />
             </View>
-
             <View className="my-5">
               <SearchBar
                 placeholder="Search for a movie"
@@ -73,25 +76,20 @@ const Search = () => {
                 onChangeText={handleSearch}
               />
             </View>
-
             {loading && (
-              <ActivityIndicator
-                size="large"
-                color="#0000ff"
-                className="my-3"
-              />
+              <ActivityIndicator size="large" color="#0000ff" className="my-3" />
             )}
-
             {error && (
               <Text className="text-red-500 px-5 my-3">
                 Error: {error.message}
               </Text>
             )}
 
+            {/* THIS IS THE FIX for the second error */}
             {!loading &&
               !error &&
               searchQuery.trim() &&
-              movies?.length! > 0 && (
+              movies && movies.length > 0 && ( // Be more explicit here
                 <Text className="text-xl text-white font-bold">
                   Search Results for{" "}
                   <Text className="text-accent">{searchQuery}</Text>

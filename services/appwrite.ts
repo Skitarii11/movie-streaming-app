@@ -1,9 +1,10 @@
-import { Client, Databases, ID, Query, Account, Models } from "react-native-appwrite";
+import { Client, Databases, ID, Query, Account, Models, Functions } from "react-native-appwrite";
 
 // --- CONFIGURATION & CLIENT SETUP ---
-const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
+export const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const METRICS_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID!;
 const MOVIES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_MOVIES_COLLECTION_ID!;
+export const PURCHASES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_PURCHASES_COLLECTION_ID!;
 
 const client = new Client()
   .setEndpoint("https://nyc.cloud.appwrite.io/v1")
@@ -11,7 +12,13 @@ const client = new Client()
 
 const database = new Databases(client);
 const account = new Account(client);
+const functions = new Functions(client); 
 
+export const appwrite = {
+  database,
+  functions,
+  account,
+};
 
 // --- TRENDING/METRICS FUNCTIONS ---
 export const updateSearchCount = async (query: string, movie: Movie) => {
@@ -45,19 +52,41 @@ export const updateSearchCount = async (query: string, movie: Movie) => {
   }
 };
 
-export const getTrendingMovies = async (): Promise<
-  TrendingMovie[] | undefined
-> => {
+export const getTrendingMovies = async (): Promise<TrendingMovie[]> => {
   try {
     const result = await database.listDocuments(DATABASE_ID, METRICS_COLLECTION_ID, [
-      Query.limit(5),
+      Query.limit(25),
       Query.orderDesc("count"),
     ]);
 
-    return result.documents as unknown as TrendingMovie[];
+    if (!result.documents || result.documents.length === 0) {
+      return [];
+    }
+
+    const searchEvents = result.documents as unknown as TrendingMovie[];
+
+    // The rest of your aggregation logic is correct and does not need to change.
+    const movieCounts: { [key: string]: { count: number; movie: TrendingMovie } } = {};
+
+    for (const event of searchEvents) {
+      const movieId = event.movie_id.toString();
+      if (movieCounts[movieId]) {
+        movieCounts[movieId].count += event.count;
+      } else {
+        movieCounts[movieId] = {
+          count: event.count,
+          movie: event,
+        };
+      }
+    }
+
+    const aggregatedMovies = Object.values(movieCounts);
+    aggregatedMovies.sort((a, b) => b.count - a.count);
+    return aggregatedMovies.slice(0, 5).map(item => item.movie);
+
   } catch (error) {
-    console.error(error);
-    return undefined;
+    console.error("Error in getTrendingMovies:", error);
+    return [];
   }
 };
 
@@ -114,14 +143,15 @@ export const signOut = async () => {
 
 
 // --- MOVIE DATABASE FUNCTIONS ---
-export const getAllMovies = async () => {
+export const getAllMovies = async (): Promise<Movie[]> => { // <-- Add explicit return type
   try {
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
-      [Query.orderDesc("$createdAt")] // Order by newest first
+      [Query.orderDesc("$createdAt")]
     );
-    return movies.documents;
+    // Use 'as' to cast the generic Document[] to your specific Movie[]
+    return movies.documents as Movie[];
   } catch (error: any) {
     console.error("Error in getAllMovies:", error);
     throw new Error(error.message);
@@ -129,14 +159,15 @@ export const getAllMovies = async () => {
 };
 
 // Search for movies by title
-export const searchMovies = async (query: string) => {
+export const searchMovies = async (query: string): Promise<Movie[]> => { // <-- Add explicit return type
   try {
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       [Query.search("title", query)]
     );
-    return movies.documents;
+    // Use 'as' to cast the generic Document[] to your specific Movie[]
+    return movies.documents as Movie[];
   } catch (error: any) {
     console.error("Error in searchMovies:", error);
     throw new Error(error.message);
