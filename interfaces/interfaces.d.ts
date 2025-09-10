@@ -76,3 +76,11 @@ interface TrendingCardProps {
   movie: TrendingMovie;
   index: number;
 }
+
+interface Purchase {
+  $id: string;
+  userId: string;
+  movieId: string;
+  expiresAt: string;
+  status: 'PENDING' | 'PAID' | 'FAILED';
+}

@@ -65,7 +65,6 @@ export const getTrendingMovies = async (): Promise<TrendingMovie[]> => {
 
     const searchEvents = result.documents as unknown as TrendingMovie[];
 
-    // The rest of your aggregation logic is correct and does not need to change.
     const movieCounts: { [key: string]: { count: number; movie: TrendingMovie } } = {};
 
     for (const event of searchEvents) {
@@ -90,6 +89,25 @@ export const getTrendingMovies = async (): Promise<TrendingMovie[]> => {
   }
 };
 
+export const getUserPurchases = async (userId: string): Promise<Purchase[]> => {
+  try {
+    const now = new Date().toISOString();
+
+    const purchases = await database.listDocuments(
+      DATABASE_ID,
+      PURCHASES_COLLECTION_ID,
+      [
+        Query.equal('userId', userId),
+        Query.equal('status', 'PAID'),
+        Query.greaterThan('expiresAt', now)
+      ]
+    );
+    return purchases.documents as unknown as Purchase[];
+  } catch (error: any) {
+    console.error("Error in getUserPurchases:", error);
+    throw new Error(error.message);
+  }
+};
 
 // --- USER AUTHENTICATION FUNCTIONS ---
 export const createUser = async (email: string, password: string, username: string) => {
