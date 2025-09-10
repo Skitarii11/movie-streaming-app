@@ -9,16 +9,13 @@ import { getUserPurchases, getMovieById } from "@/services/appwrite";
 
 import { icons } from "@/constants/icons";
 
-// A new interface to combine Movie and Purchase data
 interface SavedMovie extends Movie {
   expiresAt: string;
 }
 
-// A reusable card component for a cleaner look
 const SavedMovieCard = ({ movie }: { movie: SavedMovie }) => {
   const router = useRouter();
 
-  // Format the expiration date for display
   const expirationDate = new Date(movie.expiresAt).toLocaleDateString();
 
   return (
@@ -46,7 +43,6 @@ const SavedMovieCard = ({ movie }: { movie: SavedMovie }) => {
 const Save = () => {
   const { user } = useGlobalContext();
 
-  // This is the orchestration function that useFetch will run
   const fetchSavedMovies = async (): Promise<SavedMovie[]> => {
     if (!user) return []; // If no user is logged in, there are no saved movies
 

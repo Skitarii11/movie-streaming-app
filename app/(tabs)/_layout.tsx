@@ -78,7 +78,7 @@ export default function TabsLayout() {
           title: "Save",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.save} title="Save" />
+            <TabIcon focused={focused} icon={icons.save} title="My movies" />
           ),
         }}
       />
