@@ -71,7 +71,7 @@ const Search = () => {
             </View>
             <View className="my-5">
               <SearchBar
-                placeholder="Search for a movie"
+                placeholder="Кино хайх"
                 value={searchQuery}
                 onChangeText={handleSearch}
               />
@@ -91,7 +91,7 @@ const Search = () => {
               searchQuery.trim() &&
               movies && movies.length > 0 && ( // Be more explicit here
                 <Text className="text-xl text-white font-bold">
-                  Search Results for{" "}
+                  Хайлтын үр дүн{" "}
                   <Text className="text-accent">{searchQuery}</Text>
                 </Text>
               )}
@@ -102,8 +102,8 @@ const Search = () => {
             <View className="mt-10 px-5">
               <Text className="text-center text-gray-500">
                 {searchQuery.trim()
-                  ? "No movies found"
-                  : "Start typing to search for movies"}
+                  ? "Кино олдсонгүй"
+                  : "Кино хайхын тулд бичиж эхлээрэй"}
               </Text>
             </View>
           ) : null

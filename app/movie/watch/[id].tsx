@@ -35,7 +35,7 @@ const WatchPage = () => {
           <ActivityIndicator size="large" color="#AB8BFF" />
         ) : (
           <Text className="text-white text-center">
-            Could not load episodes.
+            Ангиудыг ачаалж чадсангүй.
           </Text>
         )}
       </SafeAreaView>
@@ -55,7 +55,7 @@ const WatchPage = () => {
             className="p-5 border-b-2 border-dark-200 flex-row justify-between items-center"
           >
             <Text className="text-white text-lg font-semibold">
-              Episode {index + 1}
+              Анги {index + 1}
             </Text>
             <Image source={icons.play} className="size-8" tintColor="#AB8BFF" />
           </TouchableOpacity>
@@ -71,12 +71,12 @@ const WatchPage = () => {
                 className="size-5 mr-2"
                 tintColor="#fff"
               />
-              <Text className="text-white font-bold">Back to Details</Text>
+              <Text className="text-white font-bold">Дэлгэрэнгүй мэдээлэл рүү буцах</Text>
             </TouchableOpacity>
             <Text className="text-white text-2xl font-bold">
               {movieData.title}
             </Text>
-            <Text className="text-light-200 mt-1">Select an episode to play</Text>
+            <Text className="text-light-200 mt-1">Тоглуулах анги сонгоно уу</Text>
           </View>
         )}
       />

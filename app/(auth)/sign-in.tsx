@@ -30,7 +30,6 @@ const SignIn = () => {
       setUser(result);
       setIsLoggedIn(true);
 
-      Alert.alert("Success", "User signed in successfully");
       router.replace("/"); // Use '/index' to go to your main tabs screen
 
     } catch (error: any) {
@@ -46,28 +45,28 @@ const SignIn = () => {
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
           <Image source={icons.logo} className="w-20 h-16 mx-auto" resizeMode="contain" />
           <Text className="text-2xl text-white text-semibold mt-10 text-center font-bold">
-            Log in
+            Нэвтрэх
           </Text>
 
           <FormField
-            title="Email"
+            title="Имэйл"
             value={form.email}
             handleChangeText={(e) => setForm({ ...form, email: e })}
             otherStyles="mt-7"
             keyboardType="email-address"
-            placeholder="Your email address"
+            placeholder="Таны имэйл хаяг"
           />
 
           <FormField
-            title="Password"
+            title="Нууц үг"
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles="mt-7"
-            placeholder="Your password"
+            placeholder="Таны нууц үг"
           />
 
           <CustomButton
-            title="Sign In"
+            title="Нэвтрэх"
             handlePress={submit}
             containerStyles="mt-7"
             isLoading={isSubmitting}
@@ -75,10 +74,10 @@ const SignIn = () => {
 
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-lg text-light-200">
-              Don't have an account?
+              Бүртгэл байхгүй уу?
             </Text>
             <Link href="/sign-up" className="text-lg font-semibold text-accent">
-              Sign Up
+              Бүртгүүлэх
             </Link>
           </View>
         </View>

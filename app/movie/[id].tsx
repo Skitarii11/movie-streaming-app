@@ -132,7 +132,7 @@ const MovieDetails = () => {
           if (pollingInterval.current) clearInterval(pollingInterval.current);
           setIsCheckingPayment(false);
           setQrCodeImage(null);
-          Alert.alert("Success", "Payment successful! You now have access.");
+          Alert.alert("Success", "Төлбөр амжилттай боллоо! Та одоо хандах эрхтэй.");
           router.push(`/movie/watch/${movie?.$id}`);
         }
       } catch (pollError) {
@@ -166,7 +166,7 @@ const MovieDetails = () => {
     return (
       <SafeAreaView className="bg-primary flex-1 justify-center items-center p-4">
         <Text className="text-white text-lg text-center">
-          Could not load movie details.
+          Киноны дэлгэрэнгүй мэдээллийг ачаалж чадсангүй.
         </Text>
         {error && (
           <Text className="text-light-200 text-sm mt-2 text-center">
@@ -177,7 +177,7 @@ const MovieDetails = () => {
           onPress={() => router.back()}
           className="mt-5 bg-accent px-6 py-3 rounded-lg"
         >
-          <Text className="text-primary font-bold">Go Back</Text>
+          <Text className="text-primary font-bold">Буцах</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -202,21 +202,21 @@ const MovieDetails = () => {
         <View className="p-5">
           <Text className="text-white text-3xl font-bold">{movieData.title}</Text>
           <Text className="text-light-200 text-sm mt-1 capitalize">
-            {movieData.type} • {movieData.releaseYear} • 110m (placeholder)
+            {movieData.type} • {movieData.releaseYear}
           </Text>
           <View className="flex-row items-center gap-2 mt-3">
             <Image source={icons.star} className="size-5" />
             <Text className="text-white font-bold text-lg">{movieData.rating.toFixed(1)} / 10</Text>
           </View>
-          <Text className="text-white text-lg font-bold mt-5">Overview</Text>
+          <Text className="text-white text-lg font-bold mt-5">Тойм</Text>
           <Text className="text-light-200 text-base mt-2">{movieData.overview}</Text>
         </View>
 
         {/* --- ACTION BUTTONS --- */}
-          <CustomButton title="Watch Now" handlePress={handleWatchNow} containerStyles="mx-5" />
+          <CustomButton title="Одоо үзээрэй" handlePress={handleWatchNow} containerStyles="mx-5" />
         <TouchableOpacity onPress={() => router.back()} className="bg-dark-200 m-5 p-4 ...">
           <Image source={icons.arrow} className="size-5 mr-2" tintColor="#fff" />
-          <Text className="text-white font-bold">Go Back</Text>
+          <Text className="text-white font-bold">Буцах</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -224,11 +224,11 @@ const MovieDetails = () => {
       <Modal visible={showPaymentOptions} transparent={true} animationType="slide">
         <View className="flex-1 justify-end bg-black/60">
           <View className="bg-dark-100 rounded-t-2xl p-5">
-            <Text className="text-white text-xl font-bold text-center mb-5">Choose a Payment Option</Text>
-            <CustomButton title="Subscribe (All Access) - ₮15,000 / month" handlePress={() => handlePaymentOption('subscription')} />
-            <CustomButton title={`Buy This Movie Only - ₮${movieData.price}`} handlePress={() => handlePaymentOption('movie')} containerStyles="mt-4" />
+            <Text className="text-white text-xl font-bold text-center mb-5">Төлбөрийг сонгоно уу</Text>
+            <CustomButton title="Бүртгүүлэх (Бүх кинонд хандах) - ₮15,000 / сар" handlePress={() => handlePaymentOption('subscription')} />
+            <CustomButton title={`Зөвхөн энэ киног худалдаж аваарай - ₮${movieData.price}`} handlePress={() => handlePaymentOption('movie')} containerStyles="mt-4" />
             <TouchableOpacity onPress={() => setShowPaymentOptions(false)} className="mt-5 p-3">
-              <Text className="text-light-200 text-center">Cancel</Text>
+              <Text className="text-light-200 text-center">Цуцлах</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -238,12 +238,12 @@ const MovieDetails = () => {
       <Modal visible={!!qrCodeImage} transparent={true} animationType="fade">
         <View className="flex-1 justify-center items-center bg-black/80 p-5">
           <View className="bg-white p-5 rounded-lg">
-            <Text className="text-secondary text-lg font-bold text-center mb-4">Scan to Pay with QPay</Text>
+            <Text className="text-secondary text-lg font-bold text-center mb-4">QPay-р төлөхийн тулд сканнердах</Text>
             {qrCodeImage && <Image source={{ uri: qrCodeImage }} className="w-64 h-64 self-center" />}
             {isCheckingPayment && (
               <View className="flex-row items-center justify-center mt-4">
                 <ActivityIndicator size="small" />
-                <Text className="text-gray-600 ml-2">Waiting for payment confirmation...</Text>
+                <Text className="text-gray-600 ml-2">Төлбөрийн баталгаажуулалтыг хүлээж байна...</Text>
               </View>
             )}
             <TouchableOpacity onPress={() => {
@@ -251,7 +251,7 @@ const MovieDetails = () => {
               setIsCheckingPayment(false);
               if (pollingInterval.current) clearInterval(pollingInterval.current);
             }} className="mt-5">
-              <Text className="text-red-500 text-center">Cancel</Text>
+              <Text className="text-red-500 text-center">Цуцлах</Text>
             </TouchableOpacity>
           </View>
         </View>

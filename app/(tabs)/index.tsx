@@ -65,13 +65,13 @@ const Index = () => {
               onPress={() => {
                 router.push("/search");
               }}
-              placeholder="Search for a movie"
+              placeholder="Кино хайх"
             />
 
             {trendingMovies && trendingMovies.length > 0 && (
               <View className="mt-10">
                 <Text className="text-lg text-white font-bold mb-3">
-                  Trending Movies
+                  Тренд кинонууд
                 </Text>
                 <FlatList
                   horizontal
@@ -93,7 +93,7 @@ const Index = () => {
 
             <>
               <Text className="text-lg text-white font-bold mt-5 mb-3">
-                Latest Movies
+                Сүүлийн үеийн кинонууд
               </Text>
 
               <FlatList

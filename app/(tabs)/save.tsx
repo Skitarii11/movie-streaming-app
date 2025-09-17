@@ -27,12 +27,12 @@ const SavedMovieCard = ({ movie }: { movie: SavedMovie }) => {
       />
       <View className="flex-1 ml-4">
         <Text className="text-white text-lg font-bold" numberOfLines={1}>{movie.title}</Text>
-        <Text className="text-light-200 mt-1">Access expires on: {expirationDate}</Text>
+        <Text className="text-light-200 mt-1">Хандалтын хугацаа дуусна: {expirationDate}</Text>
         <TouchableOpacity
           onPress={() => router.push(`/movie/watch/${movie.$id}`)}
           className="bg-accent mt-3 py-2 px-4 rounded-lg self-start"
         >
-          <Text className="text-primary font-semibold">Watch Now</Text>
+          <Text className="text-primary font-semibold">Одоо Үзэх</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -86,9 +86,9 @@ const Save = () => {
         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
         ListHeaderComponent={() => (
           <View className="my-6">
-            <Text className="text-white text-3xl font-bold">My Movies</Text>
+            <Text className="text-white text-3xl font-bold">Миний кинонууд</Text>
             <Text className="text-light-200 text-base mt-1">
-              Movies you have purchased access to.
+              Таны эрх худалдан авсан кинонууд.
             </Text>
           </View>
         )}
@@ -97,7 +97,7 @@ const Save = () => {
             <View className="flex-1 justify-center items-center mt-20">
               <Image source={icons.save} className="size-16" tintColor="#4B5563" />
               <Text className="text-gray-600 text-lg mt-4 text-center">
-                You haven't purchased any movies yet.
+                Та хараахан ямар ч кино худалдаж аваагүй байна.
               </Text>
             </View>
           )
