@@ -75,6 +75,7 @@ const MovieDetails = () => {
   // --- The Definitive, Correct handlePaymentOption function ---
   const handlePaymentOption = async (option: 'subscription' | 'movie') => {
     if (!movie || !user) return;
+
     try {
       const price = option === 'subscription' ? 15000 : movie.price;
       
