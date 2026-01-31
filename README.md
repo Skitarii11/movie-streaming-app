@@ -104,4 +104,4 @@ This project will not run without a properly configured Appwrite project.
 4.  **Construct URLs**: The streaming URL is `https://stream.mux.com/YOUR_PLAYBACK_ID.m3u8`.
 5.  **Add URLs to Appwrite**: In your `movies` collection, edit a document and add the Mux URLs to the `episodeUrls` array field.
 
-This project was developed by [Javkhlan](https://github.com/Skitarii11) as a Personal project
+This project was developed by [Javkhlan](https://github.com/Skitarii11).
