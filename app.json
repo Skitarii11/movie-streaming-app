@@ -2,7 +2,7 @@
   "expo": {
     "name": "Choco",
     "slug": "Choco",
-    "version": "3.0.36",
+    "version": "3.0.39",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.movie.Choco",
-      "versionCode": 36
+      "versionCode": 39
     },
     "web": {
       "bundler": "metro",

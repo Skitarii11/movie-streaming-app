@@ -7,7 +7,7 @@ const MOVIES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_MOVIES_COLLECTION_
 export const PURCHASES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_PURCHASES_COLLECTION_ID!;
 
 const client = new Client()
-  .setEndpoint("https://cloud.appwrite.io/v1")
+  .setEndpoint("https://nyc.cloud.appwrite.io/v1")
   .setProject(process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!);
 
 const database = new Databases(client);
