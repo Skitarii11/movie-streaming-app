@@ -110,8 +110,10 @@ export const getUserPurchases = async (userId: string): Promise<Purchase[]> => {
 };
 
 // --- USER AUTHENTICATION FUNCTIONS ---
-export const createUser = async (email: string, password: string, username: string) => {
+export const createUser = async (phone: string, password: string, username: string, registrationId: string) => {
   try {
+    const email = `${phone}@example.com`;
+
     const newAccount = await account.create(
       ID.unique(),
       email,
@@ -120,7 +122,26 @@ export const createUser = async (email: string, password: string, username: stri
     );
 
     if (!newAccount) throw new Error("Account creation failed");
-    await signIn(email, password);
+
+    await account.updatePrefs({
+      registrationId: registrationId
+    });
+
+    // --- THIS IS THE FIX ---
+    // 1. Format the phone number to E.164 standard before sending to Appwrite.
+    let formattedPhone = phone.trim(); // Remove any accidental whitespace
+    if (!formattedPhone.startsWith('+')) {
+      // Assuming your primary user base is in Mongolia.
+      formattedPhone = `+976${formattedPhone}`;
+    }
+    // --- END OF FIX ---
+    
+    // 2. Sign the user in (this function is already correct)
+    const session = await signIn(phone, password);
+    
+    // 3. Update the user's phone field with the CORRECTLY formatted number
+    await account.updatePhone(formattedPhone, password);
+
     return newAccount;
 
   } catch (error: any) {
@@ -129,8 +150,12 @@ export const createUser = async (email: string, password: string, username: stri
   }
 };
 
-export const signIn = async (email: string, password: string) => {
+export const signIn = async (phone: string, password: string) => {
   try {
+    // 1. Create the dummy email from the phone number
+    const email = `${phone}@example.com`;
+
+    // 2. Use the standard email/password session creation method
     const session = await account.createEmailPasswordSession(email, password);
     return session;
   } catch (error: any) {

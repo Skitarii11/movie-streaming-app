@@ -17,6 +17,8 @@ import useFetch from "@/services/usefetch";
 import { getMovieById } from "@/services/appwrite";
 import { icons } from "@/constants/icons";
 
+import { useScreenGuard } from '@/hooks/useScreenGuard';
+
 const WatchPage = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -43,6 +45,8 @@ const WatchPage = () => {
   }
 
   const movieData = movie as Movie;
+
+  useScreenGuard();
 
   return (
     <SafeAreaView className="bg-primary flex-1">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { Query, ExecutionMethod } from "react-native-appwrite";
@@ -18,9 +18,17 @@ import { Query, ExecutionMethod } from "react-native-appwrite";
 // --- IMPORTS ---
 import { useGlobalContext } from "@/context/GlobalProvider";
 import useFetch from "@/services/usefetch";
-import { getMovieById, appwrite, DATABASE_ID, PURCHASES_COLLECTION_ID } from "@/services/appwrite";
+import { getMovieById, appwrite, DATABASE_ID, PURCHASES_COLLECTION_ID, getUserPurchases } from "@/services/appwrite";
 import CustomButton from "@/components/CustomButton";
 import { icons } from "@/constants/icons";
+
+const pricingTiers = {
+  premium: { '1m': 15000, '3m': 40000, '6m': 75000 },
+  series:  { '1m': 7500,  '3m': 21000, '6m': 40000 },
+  movies:  { '1m': 11500, '3m': 30000, '6m': 55000 },
+};
+type BundleOption = 'premium' | 'series' | 'movies';
+type TimeOption = '1m' | '3m' | '6m';
 
 const MovieDetails = () => {
   const router = useRouter();
@@ -28,12 +36,16 @@ const MovieDetails = () => {
   const { id } = useLocalSearchParams();
 
   // --- STATE MANAGEMENT ---
+  const [hasAccess, setHasAccess] = useState(false);
   const [isPlayingTrailer, setIsPlayingTrailer] = useState(false);
-  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null); // Ref to hold the interval ID
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
+  // New state for the 2-stage modal
+  const [paymentStage, setPaymentStage] = useState<'bundle' | 'time'>('bundle');
+  const [selectedBundle, setSelectedBundle] = useState<BundleOption | null>(null);
   // --- DATA FETCHING ---
   const {
     data: movie,
@@ -51,59 +63,68 @@ const MovieDetails = () => {
     };
   }, []);
 
+  
+
   // --- PAYMENT LOGIC ---
-  const checkForAccess = async (movieId: string, userId: string) => {
-    try {
-      const now = new Date().toISOString();
-      const purchases = await appwrite.database.listDocuments(
-        DATABASE_ID,
-        PURCHASES_COLLECTION_ID,
-        [
-          Query.equal('userId', userId),
-          Query.equal('status', 'PAID'),
-          Query.greaterThan('expiresAt', now),
-          Query.equal('movieId', ['ALL_ACCESS_SUBSCRIPTION', movieId])
-        ]
-      );
-      return purchases.documents.length > 0;
-    } catch (e) {
-      console.error("Error checking for access:", e);
-      return false;
+  const checkForAccess = useCallback(async (currentMovie: Movie, allPurchases: Purchase[]) => {
+    if (!currentMovie) return false;
+
+    const hasPremium = allPurchases.some(p => p.movieId === 'ALL_ACCESS_PREMIUM');
+    if (hasPremium) return true;
+
+    if (currentMovie.type === 'series') {
+      const hasSeriesAccess = allPurchases.some(p => p.movieId === 'ALL_ACCESS_SERIES');
+      if (hasSeriesAccess) return true;
     }
+
+    if (currentMovie.type === 'movie') {
+      const hasMoviesAccess = allPurchases.some(p => p.movieId === 'ALL_ACCESS_MOVIES');
+      if (hasMoviesAccess) return true;
+    }
+
+    return false;
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkAccessStatus = async () => {
+        if (movie && user) {
+          const purchases = await getUserPurchases(user.$id);
+          const access = await checkForAccess(movie as Movie, purchases);
+          setHasAccess(access);
+        }
+      };
+      checkAccessStatus();
+    }, [user, movie, checkForAccess])
+  );
+
+  const handleBundleSelect = (bundle: BundleOption) => {
+    setSelectedBundle(bundle);
+    setPaymentStage('time');
   };
 
-  // --- The Definitive, Correct handlePaymentOption function ---
-  const handlePaymentOption = async (option: 'subscription' | 'movie') => {
-    if (!movie || !user) return;
-
+  const handleFinalPaymentSelection = async (timeOption: TimeOption) => {
+    if (!movie || !user || !selectedBundle) return;
     try {
-      const price = option === 'subscription' ? 15000 : movie.price;
+      const price = pricingTiers[selectedBundle][timeOption];
+      const purchaseType = `ALL_ACCESS_${selectedBundle.toUpperCase()}`;
       
-      const payload = JSON.stringify({
-        userId: user.$id,
-        movieId: movie.$id,
-        amount: price,
-        purchaseType: option,
-        movieTitle: movie.title
-      });
-
       const result = await appwrite.functions.createExecution(
         '68befe5900373eeeff5a',
-        payload,
-        false,
-        'POST' 
+        JSON.stringify({
+          userId: user.$id,
+          movieId: purchaseType, // Send the new bundle ID
+          amount: price,
+          purchaseType: selectedBundle, // 'premium', 'series', or 'movies'
+          movieTitle: `Subscription: ${selectedBundle}`,
+          duration: timeOption,
+        })
       );
-
-      // Use the properties we discovered from your log!
-      if (result.status === 'failed') {
-        // If the function failed, the 'errors' property should contain the reason.
-        throw new Error(result.errors || "Function execution failed. Check the function logs in your Appwrite console.");
-      }
-
+      
       const response = JSON.parse(result.responseBody);
       if (response.error) throw new Error(response.error);
 
-      setShowPaymentOptions(false);
+      setShowPaymentModal(false);
       setQrCodeImage(response.qrImage);
       pollForPayment(response.purchaseId);
 
@@ -112,7 +133,7 @@ const MovieDetails = () => {
     }
   };
 
-  // --- The Definitive, Correct pollForPayment function ---
+  // --- pollForPayment function ---
   const pollForPayment = (purchaseId: string) => {
     setIsCheckingPayment(true);
     pollingInterval.current = setInterval(async () => {
@@ -143,12 +164,13 @@ const MovieDetails = () => {
   };
 
   const handleWatchNow = async () => {
-    if (!movie || !user) return;
-    const hasAccess = await checkForAccess(movie.$id, user.$id);
     if (hasAccess) {
-      router.push(`/movie/watch/${movie.$id}`);
+      router.push(`/movie/watch/${movie?.$id}`);
     } else {
-      setShowPaymentOptions(true);
+      // Reset modal to first stage every time it's opened
+      setPaymentStage('bundle');
+      setSelectedBundle(null);
+      setShowPaymentModal(true);
     }
   };
 
@@ -221,15 +243,38 @@ const MovieDetails = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* --- PAYMENT OPTIONS MODAL --- */}
-      <Modal visible={showPaymentOptions} transparent={true} animationType="slide">
+      {/* --- DYNAMIC 2-STAGE PAYMENT MODAL --- */}
+      <Modal visible={showPaymentModal} transparent={true} animationType="slide">
         <View className="flex-1 justify-end bg-black/60">
           <View className="bg-dark-100 rounded-t-2xl p-5">
-            <Text className="text-white text-xl font-bold text-center mb-5">Төлбөрийг сонгоно уу</Text>
-            <CustomButton title="Бүртгүүлэх (Бүх кинонд хандах) - ₮15,000 / сар" handlePress={() => handlePaymentOption('subscription')} />
-            <CustomButton title={`Зөвхөн энэ киног худалдаж аваарай - ₮${movieData.price}`} handlePress={() => handlePaymentOption('movie')} containerStyles="mt-4" />
-            <TouchableOpacity onPress={() => setShowPaymentOptions(false)} className="mt-5 p-3">
-              <Text className="text-light-200 text-center">Цуцлах</Text>
+            <Text className="text-white text-xl font-bold text-center mb-5">
+              {paymentStage === 'bundle' ? 'Төлбөрийг сонгоно уу' : 'Хугацааг сонгоно уу'}
+            </Text>
+
+            {paymentStage === 'bundle' ? (
+              // STAGE 1: BUNDLE SELECTION
+              <>
+                <CustomButton title="Бүртгүүлэх (Бүх кинонд хандах)" handlePress={() => handleBundleSelect('premium')} />
+                <CustomButton title="Бүх цувралд хандах" handlePress={() => handleBundleSelect('series')} containerStyles="mt-4" />
+                <CustomButton title="Бүх кинонд хандах" handlePress={() => handleBundleSelect('movies')} containerStyles="mt-4" />
+              </>
+            ) : (
+              // STAGE 2: TIME & PRICE SELECTION
+              selectedBundle && (
+                <>
+                  <CustomButton title={`1 Сар - ₮${pricingTiers[selectedBundle]['1m']}`} handlePress={() => handleFinalPaymentSelection('1m')} />
+                  <CustomButton title={`3 Сар - ₮${pricingTiers[selectedBundle]['3m']}`} handlePress={() => handleFinalPaymentSelection('3m')} containerStyles="mt-4" />
+                  <CustomButton title={`6 Сар - ₮${pricingTiers[selectedBundle]['6m']}`} handlePress={() => handleFinalPaymentSelection('6m')} containerStyles="mt-4" />
+                  
+                  <TouchableOpacity onPress={() => setPaymentStage('bundle')} className="mt-5 p-3">
+                    <Text className="text-light-200 text-center">Буцах (Back)</Text>
+                  </TouchableOpacity>
+                </>
+              )
+            )}
+
+            <TouchableOpacity onPress={() => setShowPaymentModal(false)} className="mt-2 p-3">
+              <Text className="text-red-500 text-center">Цуцлах (Cancel)</Text>
             </TouchableOpacity>
           </View>
         </View>

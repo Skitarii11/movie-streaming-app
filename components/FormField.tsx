@@ -16,6 +16,7 @@ interface FormFieldProps {
   handleChangeText: (text: string) => void;
   otherStyles?: string;
   keyboardType?: KeyboardTypeOptions;
+  isPassword?: boolean; // <-- 1. ADD THE NEW PROP
 }
 
 const FormField = ({
@@ -24,6 +25,7 @@ const FormField = ({
   placeholder,
   handleChangeText,
   otherStyles = "",
+  isPassword = false, // <-- 2. Give it a default value
   ...props
 }: FormFieldProps) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -38,12 +40,13 @@ const FormField = ({
           placeholder={placeholder}
           placeholderTextColor="#A8B5DB"
           onChangeText={handleChangeText}
-          secureTextEntry={title === "Password" && !showPassword}
+          // 3. Use the new prop for the logic
+          secureTextEntry={isPassword && !showPassword}
           {...props}
         />
-        {title === "Password" && (
+        {/* Also use the new prop here */}
+        {isPassword && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            {/* Make sure you have 'eye.png' and 'eye-hide.png' icons */}
             <Image
               source={!showPassword ? icons.eye : icons.eyeHide}
               className="w-6 h-6"

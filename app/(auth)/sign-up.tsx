@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { createUser } from "@/services/appwrite"; // You will add 'createUser'
+import { createUser } from "@/services/appwrite";
 
 import { icons } from "@/constants/icons";
 import FormField from "@/components/FormField";
@@ -12,26 +12,25 @@ import CustomButton from "@/components/CustomButton";
 
 const SignUp = () => {
   const { setUser, setIsLoggedIn } = useGlobalContext();
-  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  // Change the state to use 'phone'
+  const [form, setForm] = useState({ username: "", phone: "", password: "", registrationId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const submit = async () => {
-    if (!form.username || !form.email || !form.password) {
+    // Update the validation check
+    if (!form.username || !form.phone || !form.password || !form.registrationId) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      // Create user will sign them in automatically as well
-      const result = await createUser(form.email, form.password, form.username);
+      // Call the updated createUser function
+      const result = await createUser(form.phone, form.password, form.username, form.registrationId);
       setUser(result);
       setIsLoggedIn(true);
-
       router.replace("/");
-
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {
@@ -45,24 +44,32 @@ const SignUp = () => {
         <View className="w-full justify-center min-h-[85vh] px-4 my-6">
           <Image source={icons.logo} className="w-20 h-16 mx-auto" resizeMode="contain" />
           <Text className="text-2xl text-white text-semibold mt-10 text-center font-bold">
-            Бүртгүүлэх
+            Бүртгүүлэх (Sign Up)
           </Text>
 
           <FormField
-            title="Хэрэглэгчийн нэр"
+            title="Нэр"
             value={form.username}
             handleChangeText={(e) => setForm({ ...form, username: e })}
             otherStyles="mt-10"
-            placeholder="Хэрэглэгчийн нэр сонгоно уу"
+            placeholder="Choose a unique username"
           />
 
           <FormField
-            title="Имэйл"
-            value={form.email}
-            handleChangeText={(e) => setForm({ ...form, email: e })}
+            title="Утасны дугаар"
+            value={form.phone}
+            handleChangeText={(e) => setForm({ ...form, phone: e })}
             otherStyles="mt-7"
-            keyboardType="email-address"
-            placeholder="Таны имэйл хаяг"
+            keyboardType="phone-pad" // Use a numeric keyboard
+            placeholder="Your phone number"
+          />
+
+          <FormField
+            title="Регистрийн дугаар"
+            value={form.registrationId}
+            handleChangeText={(e) => setForm({ ...form, registrationId: e })}
+            otherStyles="mt-7"
+            placeholder="e.g., AB12345678"
           />
 
           <FormField
@@ -70,19 +77,19 @@ const SignUp = () => {
             value={form.password}
             handleChangeText={(e) => setForm({ ...form, password: e })}
             otherStyles="mt-7"
-            placeholder="Таны нууц үг"
+            placeholder="Your password"
           />
 
           <CustomButton
-            title="Бүртгүүлэх"
+            title="Sign Up"
             handlePress={submit}
             containerStyles="mt-7"
             isLoading={isSubmitting}
           />
-
+          
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-lg text-light-200">
-              Бүртгэлтэй байна уу?
+              Бүртгэлтэй юу? 
             </Text>
             <Link href="/sign-in" className="text-lg font-semibold text-accent">
               Нэвтрэх

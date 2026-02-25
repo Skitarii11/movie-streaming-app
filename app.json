@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Choco",
+    "name": "DX Kino",
     "slug": "Choco",
-    "version": "3.0.39",
+    "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.movie.Choco",
-      "versionCode": 39
+      "versionCode": 40
     },
     "web": {
       "bundler": "metro",
