@@ -44,7 +44,6 @@ const SignIn = () => {
       router.replace("/");
     } catch (error: any) {
       Alert.alert("Error", error.message);
-      setForgotPasswordStep('enterId');
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +83,7 @@ const SignIn = () => {
     setIsSubmitting(true);
     try {
       const result = await appwrite.functions.createExecution(
-        '699ed7afb4a586fcf44f',
+        '699ed7aa003d44f0cc3a',
         JSON.stringify({ userId: userIdToReset, newPassword: resetForm.newPassword })
       );
       const response = JSON.parse(result.responseBody);
@@ -130,6 +129,10 @@ const SignIn = () => {
                   placeholder="Your password"
                   isPassword={true}
                 />
+
+                <TouchableOpacity onPress={() => setForgotPasswordStep('enterId')} className="self-end mt-2 mb-3">
+                  <Text className="text-light-200">Нууц үг мартсан уу?</Text>
+                </TouchableOpacity>
 
                 <CustomButton
                   title="Sign In"

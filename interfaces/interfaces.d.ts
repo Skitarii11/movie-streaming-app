@@ -14,6 +14,7 @@ interface Movie {
   $createdAt: string;
   $updatedAt: string;
   $permissions: string[];
+  categories: string;
 }
 
 interface TrendingMovie {

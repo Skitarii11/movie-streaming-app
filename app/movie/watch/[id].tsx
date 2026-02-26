@@ -16,7 +16,6 @@ import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import useFetch from "@/services/usefetch";
 import { getMovieById } from "@/services/appwrite";
 import { icons } from "@/constants/icons";
-
 import { useScreenGuard } from '@/hooks/useScreenGuard';
 
 const WatchPage = () => {
@@ -24,32 +23,39 @@ const WatchPage = () => {
   const { id } = useLocalSearchParams();
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
-  const {
-    data: movie,
-    loading,
-    error,
-  } = useFetch(() => getMovieById(id as string));
-
-  if (loading || error || !movie) {
-    return (
-      <SafeAreaView className="bg-primary flex-1 justify-center items-center">
-        {loading ? (
-          <ActivityIndicator size="large" color="#AB8BFF" />
-        ) : (
-          <Text className="text-white text-center">
-            Ангиудыг ачаалж чадсангүй.
-          </Text>
-        )}
-      </SafeAreaView>
-    );
-  }
-
-  const movieData = movie as Movie;
-
+  // Call the screen guard hook unconditionally at the top
   useScreenGuard();
 
-  return (
-    <SafeAreaView className="bg-primary flex-1">
+  // Call the data fetching hook unconditionally
+  const { data: movie, loading, error } = useFetch(() => getMovieById(id as string));
+
+  // --- RENDER LOGIC MOVED INTO A HELPER FUNCTION ---
+  // This function will decide what to show based on the loading/error state
+  const renderContent = () => {
+    // 1. Handle loading state
+    if (loading) {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#AB8BFF" />
+        </View>
+      );
+    }
+
+    // 2. Handle error or no data state
+    if (error || !movie) {
+      return (
+        <View className="flex-1 justify-center items-center p-4">
+          <Text className="text-white text-center text-lg">
+            Could not load episodes.
+          </Text>
+          {error && <Text className="text-light-200 text-center mt-2">{error.message}</Text>}
+        </View>
+      );
+    }
+    
+    // 3. If data is loaded successfully, render the list
+    const movieData = movie as Movie;
+    return (
       <FlatList
         data={movieData.episodeUrl}
         keyExtractor={(item, index) => `${item}-${index}`}
@@ -70,11 +76,7 @@ const WatchPage = () => {
               onPress={() => router.back()}
               className="flex-row items-center mb-5"
             >
-              <Image
-                source={icons.arrow}
-                className="size-5 mr-2"
-                tintColor="#fff"
-              />
+              <Image source={icons.arrow} className="size-5 mr-2" tintColor="#fff" />
               <Text className="text-white font-bold">Дэлгэрэнгүй мэдээлэл рүү буцах</Text>
             </TouchableOpacity>
             <Text className="text-white text-2xl font-bold">
@@ -83,13 +85,22 @@ const WatchPage = () => {
             <Text className="text-light-200 mt-1">Тоглуулах анги сонгоно уу</Text>
           </View>
         )}
+        ListEmptyComponent={() => (
+          <View className="p-5">
+            <Text className="text-light-200 text-center">No episodes found for this title.</Text>
+          </View>
+        )}
       />
+    );
+  };
 
-      {/* Video Player Modal */}
+  return (
+    <SafeAreaView className="bg-primary flex-1">
+      {renderContent()}
       <Modal
         animationType="slide"
         transparent={false}
-        visible={!!selectedVideo} // Show modal if a video is selected
+        visible={!!selectedVideo}
         onRequestClose={() => setSelectedVideo(null)}
       >
         <View style={styles.videoContainer}>

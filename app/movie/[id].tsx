@@ -9,16 +9,17 @@ import {
   Modal,
   StyleSheet,
   Alert,
+  FlatList,
+
 } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { Query, ExecutionMethod } from "react-native-appwrite";
 
-// --- IMPORTS ---
 import { useGlobalContext } from "@/context/GlobalProvider";
 import useFetch from "@/services/usefetch";
-import { getMovieById, appwrite, DATABASE_ID, PURCHASES_COLLECTION_ID, getUserPurchases } from "@/services/appwrite";
+import { getMovieById, appwrite, DATABASE_ID, PURCHASES_COLLECTION_ID, getUserPurchases,checkForAccess } from "@/services/appwrite";
 import CustomButton from "@/components/CustomButton";
 import { icons } from "@/constants/icons";
 
@@ -32,7 +33,7 @@ type TimeOption = '1m' | '3m' | '6m';
 
 const MovieDetails = () => {
   const router = useRouter();
-  const { user } = useGlobalContext(); // Get the logged-in user
+  const { user } = useGlobalContext();
   const { id } = useLocalSearchParams();
 
   // --- STATE MANAGEMENT ---
@@ -65,37 +66,19 @@ const MovieDetails = () => {
 
   
 
-  // --- PAYMENT LOGIC ---
-  const checkForAccess = useCallback(async (currentMovie: Movie, allPurchases: Purchase[]) => {
-    if (!currentMovie) return false;
-
-    const hasPremium = allPurchases.some(p => p.movieId === 'ALL_ACCESS_PREMIUM');
-    if (hasPremium) return true;
-
-    if (currentMovie.type === 'series') {
-      const hasSeriesAccess = allPurchases.some(p => p.movieId === 'ALL_ACCESS_SERIES');
-      if (hasSeriesAccess) return true;
-    }
-
-    if (currentMovie.type === 'movie') {
-      const hasMoviesAccess = allPurchases.some(p => p.movieId === 'ALL_ACCESS_MOVIES');
-      if (hasMoviesAccess) return true;
-    }
-
-    return false;
-  }, []);
+  
 
   useFocusEffect(
     useCallback(() => {
       const checkAccessStatus = async () => {
         if (movie && user) {
-          const purchases = await getUserPurchases(user.$id);
-          const access = await checkForAccess(movie as Movie, purchases);
+          // Call the new, robust function from appwrite.ts
+          const access = await checkForAccess(movie as Movie, user.$id);
           setHasAccess(access);
         }
       };
       checkAccessStatus();
-    }, [user, movie, checkForAccess])
+    }, [user, movie])
   );
 
   const handleBundleSelect = (bundle: BundleOption) => {
@@ -167,7 +150,6 @@ const MovieDetails = () => {
     if (hasAccess) {
       router.push(`/movie/watch/${movie?.$id}`);
     } else {
-      // Reset modal to first stage every time it's opened
       setPaymentStage('bundle');
       setSelectedBundle(null);
       setShowPaymentModal(true);
@@ -208,6 +190,17 @@ const MovieDetails = () => {
 
   const movieData = movie as Movie;
 
+  const CategoryChip = ({ category }: { category: string }) => (
+    <TouchableOpacity
+      onPress={() => router.push(`/category/${category}`)}
+      className="bg-dark-200 rounded-lg px-3 py-1 mr-2"
+    >
+      <Text className="text-light-200 text-sm">{category}</Text>
+    </TouchableOpacity>
+  );
+
+  const categoryArray = movieData.categories?.split('  ') || [];
+
   return (
     <SafeAreaView className="bg-primary flex-1">
       <ScrollView>
@@ -231,6 +224,19 @@ const MovieDetails = () => {
             <Image source={icons.star} className="size-5" />
             <Text className="text-white font-bold text-lg">{movieData.rating.toFixed(1)} / 10</Text>
           </View>
+            {categoryArray.length > 0 && (
+              <View className="mt-4">
+                <Text className="text-white text-lg font-bold mb-2">Categories</Text>
+                <FlatList
+                  // Use the new array we just created
+                  data={categoryArray}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => <CategoryChip category={item} />}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                />
+              </View>
+            )}
           <Text className="text-white text-lg font-bold mt-5">Тойм</Text>
           <Text className="text-light-200 text-base mt-2">{movieData.overview}</Text>
         </View>

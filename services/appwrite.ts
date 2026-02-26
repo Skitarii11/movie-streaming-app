@@ -5,6 +5,7 @@ export const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const METRICS_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID!;
 const MOVIES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_MOVIES_COLLECTION_ID!;
 export const PURCHASES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_PURCHASES_COLLECTION_ID!;
+const PROFILES_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_PROFILES_COLLECTION_ID!;
 
 const client = new Client()
   .setEndpoint("https://nyc.cloud.appwrite.io/v1")
@@ -113,34 +114,28 @@ export const getUserPurchases = async (userId: string): Promise<Purchase[]> => {
 export const createUser = async (phone: string, password: string, username: string, registrationId: string) => {
   try {
     const email = `${phone}@example.com`;
-
-    const newAccount = await account.create(
-      ID.unique(),
-      email,
-      password,
-      username
-    );
-
+    
+    // 1. Create the Auth user
+    const newAccount = await account.create(ID.unique(), email, password, username);
     if (!newAccount) throw new Error("Account creation failed");
 
-    await account.updatePrefs({
-      registrationId: registrationId
-    });
+    // 2. Sign the user in immediately to get a session
+    await signIn(phone, password);
+    
+    // 3. Create the corresponding document in the 'profiles' collection
+    //    We use the new user's ID as the document ID for easy mapping
+    await database.createDocument(
+        DATABASE_ID,
+        PROFILES_COLLECTION_ID,
+        newAccount.$id, // Use the user's ID as the document ID
+        {
+            userId: newAccount.$id,
+            registrationId: registrationId
+        }
+    );
 
-    // --- THIS IS THE FIX ---
-    // 1. Format the phone number to E.164 standard before sending to Appwrite.
-    let formattedPhone = phone.trim(); // Remove any accidental whitespace
-    if (!formattedPhone.startsWith('+')) {
-      // Assuming your primary user base is in Mongolia.
-      formattedPhone = `+976${formattedPhone}`;
-    }
-    // --- END OF FIX ---
-    
-    // 2. Sign the user in (this function is already correct)
-    const session = await signIn(phone, password);
-    
-    // 3. Update the user's phone field with the CORRECTLY formatted number
-    await account.updatePhone(formattedPhone, password);
+    // This part is now redundant as we don't use prefs, but it doesn't hurt
+    await account.updatePhone(`+976${phone}`, password);
 
     return newAccount;
 
@@ -218,16 +213,88 @@ export const searchMovies = async (query: string): Promise<Movie[]> => { // <-- 
 };
 
 // Get a single movie by its document ID
-export const getMovieById = async (movieId: string) => {
+export const getMovieById = async (movieId: string): Promise<Movie | null> => { // 1. Add explicit return type
   try {
     const movie = await database.getDocument(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       movieId
     );
-    return movie;
+    // 2. Use a two-step cast to tell TypeScript the true shape of the document
+    return movie as unknown as Movie;
   } catch (error: any) {
-    console.error("Error in getMovieById:", error);
+    // --- THIS IS THE FIX ---
+    // Check if the error message indicates that the document was not found.
+    // This is a common and expected case in our 'save' page logic.
+    if (error.message && error.message.includes('could not be found')) {
+      // It's a "not found" error. Fail silently by returning null without logging.
+    } else {
+      // It's a different, unexpected error (e.g., network failure, permissions issue).
+      // We SHOULD log these to help with debugging future problems.
+      console.error(`Unexpected error fetching movie by ID ${movieId}:`, error.message);
+    }
+    
+    // In either case, return null to the calling function.
+    return null;
+  }
+};
+
+export const getMoviesByCategory = async (category: string): Promise<Movie[]> => {
+  try {
+    const movies = await database.listDocuments(
+      DATABASE_ID,
+      MOVIES_COLLECTION_ID,
+      // Use Query.search, which works with a full-text index
+      [Query.search("categories", category)]
+    );
+    return movies.documents as unknown as Movie[];
+  } catch (error: any) {
+    console.error("Error in getMoviesByCategory:", error);
     throw new Error(error.message);
+  }
+};
+
+export const checkForAccess = async (movie: Movie, userId: string): Promise<boolean> => {
+  try {
+    if (!movie || !userId) return false;
+
+    const userPurchases = await getUserPurchases(userId);
+    if (userPurchases.length === 0) return false; // No purchases, no access
+
+    // --- The Correct "Waterfall" Logic ---
+
+    // 1. Check for the highest tier: Premium
+    // The .some() method is perfect for checking if at least one item in an array meets a condition.
+    const hasPremium = userPurchases.some(p => p.movieId === 'ALL_ACCESS_PREMIUM');
+    if (hasPremium) {
+      console.log(`Access granted for user ${userId} via Premium subscription.`);
+      return true; // Premium grants access to everything.
+    }
+
+    // 2. If no premium, check for Series access (if content is a series)
+    if (movie.type === 'series') {
+      const hasSeriesAccess = userPurchases.some(p => p.movieId === 'ALL_ACCESS_SERIES');
+      if (hasSeriesAccess) {
+        console.log(`Access granted for user ${userId} via Series subscription.`);
+        return true;
+      }
+    }
+
+    // 3. If no series access, check for Movie access (if content is a movie)
+    if (movie.type === 'movie') {
+      const hasMoviesAccess = userPurchases.some(p => p.movieId === 'ALL_ACCESS_MOVIES');
+      if (hasMoviesAccess) {
+        console.log(`Access granted for user ${userId} via Movies subscription.`);
+        return true;
+      }
+    }
+
+    // 4. If none of the above, deny access.
+    console.log(`Access denied for user ${userId} for movie ${movie.$id}.`);
+    return false;
+
+  } catch (error) {
+    console.error("Error in checkForAccess:", error);
+    return false; // Default to no access on error
   }
 };
