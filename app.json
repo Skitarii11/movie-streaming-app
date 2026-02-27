@@ -2,7 +2,7 @@
   "expo": {
     "name": "DX Kino",
     "slug": "Choco",
-    "version": "4.0.0",
+    "version": "4.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -21,7 +21,10 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.movie.Choco",
-      "versionCode": 40
+      "versionCode": 41,
+      "buildOptions": {
+        "android-16kb-page-size": true
+      }
     },
     "web": {
       "bundler": "metro",
