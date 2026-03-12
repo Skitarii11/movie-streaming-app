@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Alert,
   FlatList,
-
+  Linking,
 } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +31,13 @@ const pricingTiers = {
 type BundleOption = 'premium' | 'series' | 'movies';
 type TimeOption = '1m' | '3m' | '6m';
 
+interface DeepLink {
+  name: string;
+  description: string;
+  logo: string;
+  link: string;
+}
+
 const MovieDetails = () => {
   const router = useRouter();
   const { user } = useGlobalContext();
@@ -43,6 +50,7 @@ const MovieDetails = () => {
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const [deepLinks, setDeepLinks] = useState<DeepLink[]>([]);
 
   // New state for the 2-stage modal
   const [paymentStage, setPaymentStage] = useState<'bundle' | 'time'>('bundle');
@@ -64,15 +72,10 @@ const MovieDetails = () => {
     };
   }, []);
 
-  
-
-  
-
   useFocusEffect(
     useCallback(() => {
       const checkAccessStatus = async () => {
         if (movie && user) {
-          // Call the new, robust function from appwrite.ts
           const access = await checkForAccess(movie as Movie, user.$id);
           setHasAccess(access);
         }
@@ -96,9 +99,9 @@ const MovieDetails = () => {
         '68befe5900373eeeff5a',
         JSON.stringify({
           userId: user.$id,
-          movieId: purchaseType, // Send the new bundle ID
+          movieId: purchaseType,
           amount: price,
-          purchaseType: selectedBundle, // 'premium', 'series', or 'movies'
+          purchaseType: selectedBundle,
           movieTitle: `Subscription: ${selectedBundle}`,
           duration: timeOption,
         })
@@ -108,13 +111,25 @@ const MovieDetails = () => {
       if (response.error) throw new Error(response.error);
 
       setShowPaymentModal(false);
-      setQrCodeImage(response.qrImage);
       pollForPayment(response.purchaseId);
+      setQrCodeImage(response.qrImage);
+      setDeepLinks(response.deepLinks || []);
 
     } catch (e: any) {
       Alert.alert("Error", `Failed to generate QR code: ${e.message}`);
     }
   };
+
+   const handleDeepLinkPress = async (url: string) => {
+      // Check if the device can handle the deep link URL
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        // Open the banking app
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("App Not Found", "The selected banking app is not installed on your device.");
+      }
+    };
 
   // --- pollForPayment function ---
   const pollForPayment = (purchaseId: string) => {
@@ -298,9 +313,25 @@ const MovieDetails = () => {
                 <Text className="text-gray-600 ml-2">Төлбөрийн баталгаажуулалтыг хүлээж байна...</Text>
               </View>
             )}
+            <Text className="text-gray-600 text-center font-semibold mt-4 mb-2">банкны аппликейшнаа ашиглан нээх:</Text>
+            <FlatList
+              data={deepLinks}
+              keyExtractor={(item) => item.name}
+              numColumns={4} // Adjust for a nice grid
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => handleDeepLinkPress(item.link)}
+                  className="flex-1 items-center justify-center p-2"
+                >
+                  <Image source={{ uri: item.logo }} className="w-12 h-12 rounded-lg" />
+                  <Text className="text-xs text-center mt-1" numberOfLines={1}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
             <TouchableOpacity onPress={() => {
               setQrCodeImage(null);
               setIsCheckingPayment(false);
+              setDeepLinks([]);
               if (pollingInterval.current) clearInterval(pollingInterval.current);
             }} className="mt-5">
               <Text className="text-red-500 text-center">Цуцлах</Text>
