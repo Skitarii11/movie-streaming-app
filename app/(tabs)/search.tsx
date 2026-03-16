@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, FlatList, Image } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
 
-import { images } from "@/constants/images";
 import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
 
-import useFetch from "@/services/usefetch";
 import { searchMovies, updateSearchCount } from "@/services/appwrite";
+import useFetch from "@/services/usefetch";
 
-import SearchBar from "@/components/SearchBar";
 import MovieCard from "@/components/MovieCard";
+import SearchBar from "@/components/SearchBar";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,17 +45,13 @@ const Search = () => {
 
   return (
     <View className="flex-1 bg-primary">
-      <Image
-        source={images.bg}
-        className="flex-1 absolute w-full z-0"
-        resizeMode="cover"
-      />
-
       <FlatList
         className="px-5"
         data={movies as Movie[]}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <MovieCard {...item} />}
+        renderItem={({ item }) => (
+          <MovieCard movie={item} containerStyles="w-[30%]" />
+        )}
         numColumns={3}
         columnWrapperStyle={{
           justifyContent: "flex-start",
@@ -77,7 +73,11 @@ const Search = () => {
               />
             </View>
             {loading && (
-              <ActivityIndicator size="large" color="#0000ff" className="my-3" />
+              <ActivityIndicator
+                size="large"
+                color="#0000ff"
+                className="my-3"
+              />
             )}
             {error && (
               <Text className="text-red-500 px-5 my-3">
@@ -89,7 +89,8 @@ const Search = () => {
             {!loading &&
               !error &&
               searchQuery.trim() &&
-              movies && movies.length > 0 && ( // Be more explicit here
+              movies &&
+              movies.length > 0 && ( // Be more explicit here
                 <Text className="text-xl text-white font-bold">
                   Хайлтын үр дүн{" "}
                   <Text className="text-accent">{searchQuery}</Text>

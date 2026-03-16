@@ -1,27 +1,22 @@
 import { Tabs } from "expo-router";
-import { ImageBackground, Image, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
 
 function TabIcon({ focused, icon, title }: any) {
-  if (focused) {
-    return (
-      <ImageBackground
-        source={images.highlight}
-        className="flex flex-row w-full flex-1 min-w-[112px] min-h-14 mt-4 justify-center items-center rounded-full overflow-hidden"
-      >
-        <Image source={icon} tintColor="#151312" className="size-5" />
-        <Text className="text-secondary text-base font-semibold ml-2">
-          {title}
-        </Text>
-      </ImageBackground>
-    );
-  }
-
   return (
-    <View className="size-full justify-center items-center mt-4 rounded-full">
-      <Image source={icon} tintColor="#A8B5DB" className="size-5" />
+    <View className="items-center justify-start pt-7 gap-1">
+      <Image
+        source={icon}
+        resizeMode="contain"
+        tintColor={focused ? "#FF6B6B" : "#8D8D8D"}
+        className="w-7 h-7"
+      />
+      <Text
+        className={`${focused ? "font-semibold text-accent" : "font-normal text-lightText"} text-xs`}
+      >
+        {title}
+      </Text>
     </View>
   );
 }
@@ -42,7 +37,7 @@ export default function TabsLayout() {
           borderRadius: 50,
           marginHorizontal: 20,
           marginBottom: 36,
-          height: 52,
+          height: 60,
           position: "absolute",
           overflow: "hidden",
           borderWidth: 1,
@@ -50,46 +45,53 @@ export default function TabsLayout() {
         },
       }}
     >
+      {/* 1. Home Screen (Нүүр) */}
       <Tabs.Screen
         name="index"
         options={{
-          title: "index",
+          title: "Нүүр",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} title="Нүүр" />
+            <TabIcon focused={focused} icon={icons.home}/>
           ),
         }}
       />
 
+      {/* 2. Search Screen*/}
       <Tabs.Screen
         name="search"
         options={{
           title: "Search",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.search} title="Хайх" />
+            <TabIcon focused={focused} icon={icons.search} />
           ),
         }}
       />
 
+      {/* 3. Categories Screen (Ангилал) */}
       <Tabs.Screen
-        name="save"
+        name="categories"
         options={{
-          title: "Save",
+          title: "Ангилал",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.save} title="Миний" />
+            <TabIcon
+              focused={focused}
+              icon={icons.categories}
+            />
           ),
         }}
       />
 
+      {/* 4. Profile Screen (Профайл) */}
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Профайл",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.person} title="Профайл" />
+            <TabIcon focused={focused} icon={icons.person}/>
           ),
         }}
       />

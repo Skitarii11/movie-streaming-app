@@ -6,7 +6,7 @@ interface Movie {
   releaseYear: number;
   rating: number;
   price: number;
-  type: 'movie' | 'series';
+  type: "movie" | "series";
   trailerUrl?: string;
   episodeUrl: string[];
   $collectionId: string;
@@ -15,6 +15,7 @@ interface Movie {
   $updatedAt: string;
   $permissions: string[];
   categories: string;
+  tag: string;
 }
 
 interface TrendingMovie {
@@ -83,5 +84,18 @@ interface Purchase {
   userId: string;
   movieId: string;
   expiresAt: string;
-  status: 'PENDING' | 'PAID' | 'FAILED';
+  status: "PENDING" | "PAID" | "FAILED";
+}
+
+interface WatchHistoryItem {
+  $id: string;
+  userId: string;
+  movieId: string;
+  watchedAt: string;
+}
+
+interface FavoriteItem {
+  $id: string;
+  userId: string;
+  movieId: string;
 }

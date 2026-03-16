@@ -1,33 +1,45 @@
-import { useState } from "react";
+import { AVPlaybackStatus, ResizeMode, Video } from "expo-av";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
+  FlatList,
+  Image,
   Modal,
   StyleSheet,
-  Image,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 
-import useFetch from "@/services/usefetch";
-import { getMovieById } from "@/services/appwrite";
 import { icons } from "@/constants/icons";
-import { useScreenGuard } from '@/hooks/useScreenGuard';
+import { useGlobalContext } from "@/context/GlobalProvider";
+import { useScreenGuard } from "@/hooks/useScreenGuard";
+import { addWatchHistory, getMovieById } from "@/services/appwrite";
+import useFetch from "@/services/usefetch";
 
 const WatchPage = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const { user } = useGlobalContext();
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
   // Call the screen guard hook unconditionally at the top
   useScreenGuard();
 
   // Call the data fetching hook unconditionally
-  const { data: movie, loading, error } = useFetch(() => getMovieById(id as string));
+  const {
+    data: movie,
+    loading,
+    error,
+  } = useFetch(() => getMovieById(id as string));
+
+  useEffect(() => {
+    if (user?.$id && id) {
+      addWatchHistory(user.$id, id as string);
+    }
+  }, [user, id]);
 
   // --- RENDER LOGIC MOVED INTO A HELPER FUNCTION ---
   // This function will decide what to show based on the loading/error state
@@ -48,11 +60,15 @@ const WatchPage = () => {
           <Text className="text-white text-center text-lg">
             Could not load episodes.
           </Text>
-          {error && <Text className="text-light-200 text-center mt-2">{error.message}</Text>}
+          {error && (
+            <Text className="text-light-200 text-center mt-2">
+              {error.message}
+            </Text>
+          )}
         </View>
       );
     }
-    
+
     // 3. If data is loaded successfully, render the list
     const movieData = movie as Movie;
     return (
@@ -76,18 +92,28 @@ const WatchPage = () => {
               onPress={() => router.back()}
               className="flex-row items-center mb-5"
             >
-              <Image source={icons.arrow} className="size-5 mr-2" tintColor="#fff" />
-              <Text className="text-white font-bold">Дэлгэрэнгүй мэдээлэл рүү буцах</Text>
+              <Image
+                source={icons.arrow}
+                className="size-5 mr-2"
+                tintColor="#fff"
+              />
+              <Text className="text-white font-bold">
+                Дэлгэрэнгүй мэдээлэл рүү буцах
+              </Text>
             </TouchableOpacity>
             <Text className="text-white text-2xl font-bold">
               {movieData.title}
             </Text>
-            <Text className="text-light-200 mt-1">Тоглуулах анги сонгоно уу</Text>
+            <Text className="text-light-200 mt-1">
+              Тоглуулах анги сонгоно уу
+            </Text>
           </View>
         )}
         ListEmptyComponent={() => (
           <View className="p-5">
-            <Text className="text-light-200 text-center">No episodes found for this title.</Text>
+            <Text className="text-light-200 text-center">
+              No episodes found for this title.
+            </Text>
           </View>
         )}
       />
@@ -133,21 +159,21 @@ const WatchPage = () => {
 const styles = StyleSheet.create({
   videoContainer: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: "black",
   },
   closeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     left: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,
     borderRadius: 5,
     zIndex: 1,
   },
   closeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  }
+    color: "white",
+    fontWeight: "bold",
+  },
 });
 
 export default WatchPage;

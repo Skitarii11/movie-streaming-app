@@ -1,23 +1,27 @@
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-  FlatList,
-} from "react-native";
 import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import useFetch from "@/services/usefetch";
-// Removed unnecessary import for 'fetchMovies'
 import { getAllMovies, getTrendingMovies } from "@/services/appwrite";
+import useFetch from "@/services/usefetch";
 
 import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
 
-import SearchBar from "@/components/SearchBar";
 import MovieCard from "@/components/MovieCard";
+import SlideshowCard from "@/components/SlideshowCard";
 import TrendingCard from "@/components/TrendingCard";
+
+const { width } = Dimensions.get("window");
 
 const Index = () => {
   const router = useRouter();
@@ -34,89 +38,118 @@ const Index = () => {
     error: moviesError,
   } = useFetch(getAllMovies);
 
+  const flatListRef = useRef<FlatList<TrendingMovie>>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (trendingMovies && trendingMovies.length > 0) {
+      interval = setInterval(() => {
+        const nextIndex = (activeIndex + 1) % trendingMovies.length;
+        flatListRef.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+        setActiveIndex(nextIndex);
+      }, 4000);
+    }
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [activeIndex, trendingMovies]);
+
   return (
-    <View className="flex-1 bg-primary">
-      <Image
-        source={images.bg}
-        className="absolute w-full z-0"
-        resizeMode="cover"
-      />
-
+    <SafeAreaView className="bg-primary flex-1">
       <ScrollView
-        className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ minHeight: "100%", paddingBottom: 100 }} // Increased padding for better scroll
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <Image source={icons.logo} className="w-12 h-10 mt-20 mb-5 mx-auto" />
-
-        {moviesLoading || trendingLoading ? (
-          <ActivityIndicator
-            size="large"
-            color="#AB8BFF" // Using accent color for consistency
-            className="mt-10 self-center"
-          />
-        ) : moviesError || trendingError ? (
-          <Text className="text-red-500 text-center mt-10">
-            Error: {moviesError?.message || trendingError?.message}
-          </Text>
-        ) : (
-          <View className="flex-1 mt-5">
-            <SearchBar
-              onPress={() => {
-                router.push("/search");
-              }}
-              placeholder="Кино хайх"
-            />
-
-            {trendingMovies && trendingMovies.length > 0 && (
-              <View className="mt-10">
-                <Text className="text-lg text-white font-bold mb-3">
-                  Тренд кинонууд
-                </Text>
-                <FlatList
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  className="mb-4 mt-3"
-                  data={trendingMovies as TrendingMovie[]}
-                  contentContainerStyle={{
-                    gap: 26,
-                  }}
-                  renderItem={({ item, index }) => (
-                    <TrendingCard movie={item} index={index} />
-                  )}
-                  // --- FIX #1: Added 'trending-' prefix to the key ---
-                  keyExtractor={(item) => `trending-${item.movie_id.toString()}`}
-                  ItemSeparatorComponent={() => <View className="w-4" />}
-                />
-              </View>
-            )}
-
-            <>
-              <Text className="text-lg text-white font-bold mt-5 mb-3">
-                Сүүлийн үеийн кинонууд
-              </Text>
-
-              <FlatList
-                data={movies as Movie[]}
-                // Cleaned up renderItem - the spread operator is sufficient
-                renderItem={({ item }) => <MovieCard {...item} />}
-                // --- FIX #2: Added 'latest-' prefix to the key ---
-                keyExtractor={(item) => `latest-${item.$id}`}
-                numColumns={3}
-                columnWrapperStyle={{
-                  justifyContent: "flex-start",
-                  gap: 20,
-                  paddingRight: 5,
-                  marginBottom: 10,
-                }}
-                className="mt-2 pb-32"
-                scrollEnabled={false}
+        <View className="px-4">
+          <View className="flex-row items-center justify-between px-4 mt-12 mb-6">
+            <Image source={icons.logo} className="w-12 h-10" />
+            <TouchableOpacity onPress={() => router.push("/search")}>
+              <Image
+                source={icons.search}
+                className="w-7 h-7"
+                tintColor="#4A4A4A"
               />
-            </>
+            </TouchableOpacity>
           </View>
+        </View>
+
+        {trendingLoading ? (
+          <ActivityIndicator size="large" color="#FF6B6B" />
+        ) : (
+          trendingMovies &&
+          trendingMovies.length > 0 && (
+            <FlatList
+              ref={flatListRef}
+              data={trendingMovies}
+              keyExtractor={(item) => `slideshow-${item.movie_id}`}
+              renderItem={({ item }) => (
+                <View style={{ width: width, height: 220 }}>
+                  <SlideshowCard movie={item} />
+                </View>
+              )}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.floor(
+                  event.nativeEvent.contentOffset.x / width,
+                );
+                setActiveIndex(index);
+              }}
+            />
+          )
         )}
+
+        <View className="px-4">
+          {trendingMovies && trendingMovies.length > 0 && (
+            <View className="mt-10">
+              <Text className="text-lg text-black font-bold mb-3">
+                Тренд кинонууд
+              </Text>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-4 mt-3"
+                data={trendingMovies as TrendingMovie[]}
+                contentContainerStyle={{
+                  gap: 26,
+                }}
+                renderItem={({ item, index }) => (
+                  <TrendingCard movie={item} index={index} />
+                )}
+                keyExtractor={(item) => `trending-${item.movie_id.toString()}`}
+                ItemSeparatorComponent={() => <View className="w-4" />}
+              />
+            </View>
+          )}
+
+          <View className="mt-8">
+            <Text className="text-lg text-black font-bold mt-5 mb-3">
+              Сүүлийн үеийн кинонууд
+            </Text>
+
+            <FlatList
+              data={movies as Movie[]}
+              renderItem={({ item }) => (
+                <MovieCard movie={item} containerStyles="w-[30%]" />
+              )}
+              keyExtractor={(item) => `latest-${item.$id}`}
+              numColumns={3}
+              columnWrapperStyle={{
+                justifyContent: "flex-start",
+                gap: 20,
+                paddingRight: 5,
+                marginBottom: 10,
+              }}
+              className="mt-2 pb-32"
+              scrollEnabled={false}
+            />
+          </View>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
