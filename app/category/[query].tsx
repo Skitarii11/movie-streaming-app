@@ -31,7 +31,7 @@ const CategoryPage = () => {
         data={movies}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
-          <MovieCard movie={item} containerStyles="w-36 mr-4" />
+          <MovieCard movie={item} containerStyles="w-[30%]" />
         )}
         numColumns={3}
         columnWrapperStyle={{

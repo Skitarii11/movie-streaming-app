@@ -105,7 +105,7 @@ const Index = () => {
         <View className="px-4">
           {trendingMovies && trendingMovies.length > 0 && (
             <View className="mt-10">
-              <Text className="text-lg text-black font-bold mb-3">
+              <Text className="text-lg text-white font-bold mb-3">
                 Тренд кинонууд
               </Text>
               <FlatList
@@ -126,7 +126,7 @@ const Index = () => {
           )}
 
           <View className="mt-8">
-            <Text className="text-lg text-black font-bold mt-5 mb-3">
+            <Text className="text-lg text-white font-bold mt-5 mb-3">
               Сүүлийн үеийн кинонууд
             </Text>
 

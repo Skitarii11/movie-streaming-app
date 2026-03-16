@@ -211,7 +211,7 @@ const Profile = () => {
   if (!user) {
     return (
       <SafeAreaView className="bg-primary flex-1 justify-center items-center p-4">
-        <Text className="text-darkText text-lg font-semibold text-center">
+        <Text className="text-lightText text-lg font-semibold text-center">
           Please Log In
         </Text>
         <Text className="text-lightText text-center mt-2">
@@ -234,7 +234,7 @@ const Profile = () => {
             source={{ uri: "https://via.placeholder.com/150" }}
             className="w-24 h-24 rounded-full"
           />
-          <Text className="text-2xl font-bold text-darkText mt-4">
+          <Text className="text-2xl font-bold text-white text-lightText mt-4">
             {user?.name}
           </Text>
         </View>
@@ -245,7 +245,7 @@ const Profile = () => {
           <>
             {/* Custom Watch History List */}
             <View className="mt-8">
-              <Text className="text-xl font-bold text-darkText px-4 mb-4">
+              <Text className="text-xl font-bold text-lightText text-white px-4 mb-4">
                 Миний үзсэн кино
               </Text>
               {watchHistoryMovies.length > 0 ? (
@@ -260,7 +260,7 @@ const Profile = () => {
                   contentContainerStyle={{ paddingLeft: 16 }}
                 />
               ) : (
-                <Text className="text-lightText px-4">
+                <Text className="text-lightText text-white px-4">
                   No movies found in this section.
                 </Text>
               )}
@@ -268,7 +268,7 @@ const Profile = () => {
 
             {/* Custom Favorites List */}
             <View className="mt-8">
-              <Text className="text-xl font-bold text-darkText px-4 mb-4">
+              <Text className="text-xl font-bold text-lightText text-white px-4 mb-4">
                 Миний дуртай кино
               </Text>
               {favoriteMovies.length > 0 ? (
@@ -283,7 +283,7 @@ const Profile = () => {
                   contentContainerStyle={{ paddingLeft: 16 }}
                 />
               ) : (
-                <Text className="text-lightText px-4">
+                <Text className="text-lightText text-white px-4">
                   No movies found in this section.
                 </Text>
               )}
@@ -293,18 +293,18 @@ const Profile = () => {
 
         {/* Subscription Section */}
         <View className="mt-8 mx-4">
-          <Text className="text-xl font-bold text-darkText mb-4">
+          <Text className="text-xl font-bold text-lightText text-white mb-4">
             Миний гишүүнчлэл
           </Text>
           {activeSubscription ? (
             <View className="p-4 bg-secondary rounded-2xl">
-              <Text className="text-lg font-bold text-darkText capitalize">
+              <Text className="text-lg font-bold text-lightText text-white capitalize">
                 {activeSubscription.movieId
                   .replace("ALL_ACCESS_", "")
                   .toLowerCase()}{" "}
                 Plan
               </Text>
-              <Text className="text-sm text-lightText mt-4">
+              <Text className="text-sm text-lightText text-white mt-4">
                 Дуусах хугацаа:{" "}
                 {new Date(activeSubscription.expiresAt).toLocaleDateString()}
               </Text>
@@ -317,7 +317,7 @@ const Profile = () => {
             </View>
           ) : (
             <View className="p-4 bg-secondary rounded-2xl items-center">
-              <Text className="text-lightText">
+              <Text className="text-lightText text-white">
                 You have no active subscriptions.
               </Text>
               {/* This button now triggers the payment modal */}
@@ -338,9 +338,9 @@ const Profile = () => {
           <TouchableOpacity
             onPress={logout}
             disabled={isLoggingOut}
-            className="bg-secondary rounded-xl py-4"
+            className="bg-accent rounded-xl py-4"
           >
-            <Text className="text-accent font-bold text-center text-lg">
+            <Text className="font-bold text-center text-white text-lg">
               {isLoggingOut ? "Logging out..." : "Гарах (Logout)"}
             </Text>
           </TouchableOpacity>

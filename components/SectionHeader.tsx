@@ -11,7 +11,7 @@ const SectionHeader = ({ title, viewAllHref }: SectionHeaderProps) => {
 
   return (
     <View className="flex-row justify-between items-center px-4 mb-4">
-      <Text className="text-xl font-bold text-darkText">{title}</Text>
+      <Text className="text-xl font-bold text-white">{title}</Text>
       <TouchableOpacity onPress={() => router.push(viewAllHref)}>
         <Text className="text-sm font-semibold text-accent">Бүгдийг үзэх</Text>
       </TouchableOpacity>

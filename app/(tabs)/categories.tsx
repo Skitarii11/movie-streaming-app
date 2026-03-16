@@ -21,7 +21,7 @@ const CategoriesPage = () => {
   return (
     <SafeAreaView className="bg-primary flex-1">
       <ScrollView>
-        <Text className="text-3xl font-bold text-darkText p-4 mt-12">
+        <Text className="text-3xl font-bold text-white p-4 mt-12">
           Ангилал
         </Text>
 
