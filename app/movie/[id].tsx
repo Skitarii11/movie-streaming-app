@@ -57,6 +57,7 @@ const MovieDetails = () => {
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const [deepLinks, setDeepLinks] = useState<DeepLink[]>([]);
+  
 
   // New state for the 2-stage modal
   const [paymentStage, setPaymentStage] = useState<"bundle" | "time">("bundle");
@@ -202,6 +203,19 @@ const MovieDetails = () => {
   };
 
   const handleWatchNow = async () => {
+    if (!user) {
+      // If no user, navigate them to the profile tab to sign in.
+      Alert.alert(
+        "Нэвтрэх шаардлагатай",
+        "Кино үзэхийн тулд та эхлээд нэвтрэх эсвэл бүртгүүлэх шаардлагатай.",
+        [
+          { text: "Цуцлах   " },
+          { text: "Профайл руу очих", onPress: () => router.push('/profile') }
+        ]
+      );
+      return;
+    }
+
     if (hasAccess) {
       router.push(`/movie/watch/${movie?.$id}`);
     } else {

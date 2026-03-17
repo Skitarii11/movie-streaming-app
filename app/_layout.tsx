@@ -21,8 +21,6 @@ const RootLayout = () => {
       const inAuthGroup = segments[0] === "(auth)";
       if (isLoggedIn && inAuthGroup) {
         router.replace("/");
-      } else if (!isLoggedIn) {
-        router.replace("/sign-in");
       }
       SplashScreen.hideAsync();
     }

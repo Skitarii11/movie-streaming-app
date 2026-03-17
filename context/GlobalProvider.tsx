@@ -21,6 +21,7 @@ interface IGlobalContext {
   isLoading: boolean;
   isLoggingOut: boolean;
   logout: () => Promise<void>;
+  setIsLoading:Dispatch<SetStateAction<boolean>>;
 }
 
 const GlobalContext = createContext<IGlobalContext | null>(null);
@@ -89,6 +90,7 @@ const GlobalProvider = ({ children }: GlobalProviderProps) => {
         setUser,       // <-- ADD THIS
         logout,
         isLoggingOut,
+        setIsLoading,
       }}
     >
       {children}

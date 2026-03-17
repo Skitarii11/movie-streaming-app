@@ -40,7 +40,6 @@ const SignIn = () => {
       setUser(result);
       setIsLoggedIn(true);
 
-      Alert.alert("Success", "User signed in successfully");
       router.replace("/");
     } catch (error: any) {
       Alert.alert("Error", error.message);
@@ -89,8 +88,7 @@ const SignIn = () => {
       const response = JSON.parse(result.responseBody);
 
       if (response.success) {
-        Alert.alert("Success", "Your password has been reset successfully. Please log in.");
-        setForgotPasswordStep('default'); // Reset the form
+        setForgotPasswordStep('default');
         setResetForm({ registrationId: "", newPassword: "" });
       } else {
         Alert.alert("Error", response.message || "Failed to reset password.");

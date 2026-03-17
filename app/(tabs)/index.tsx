@@ -131,7 +131,7 @@ const Index = () => {
 
           <View className="mb-8">
                 <SectionHeader
-                  title='шинэ кино кинонууд'
+                  title='шинэ кинонууд'
                   viewAllHref={`/category/шинэ кино`}
                 />
                 <FlatList

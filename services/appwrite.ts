@@ -383,20 +383,46 @@ export const getWatchHistory = async (
 
 export const addWatchHistory = async (userId: string, movieId: string) => {
   try {
-    await database.createDocument(
-      DATABASE_ID,
-      HISTORY_COLLECTION_ID,
-      ID.unique(),
-      {
-        userId,
-        movieId,
-        watchedAt: new Date().toISOString(),
-      },
-    );
-  } catch (error: any) {
-    console.error("Error in addWatchHistory:", error);
-    throw new Error(error.message);
-  }
+        // 1. Check if a history item for this user and movie already exists
+        const existingHistory = await database.listDocuments(
+            DATABASE_ID,
+            HISTORY_COLLECTION_ID,
+            [
+                Query.equal('userId', userId),
+                Query.equal('movieId', movieId)
+            ]
+        );
+
+        const now = new Date().toISOString();
+
+        if (existingHistory.documents.length > 0) {
+            // 2. If it exists, UPDATE the timestamp
+            const docId = existingHistory.documents[0].$id;
+            console.log(`Updating watch history for movie: ${movieId}`);
+            await database.updateDocument(
+                DATABASE_ID,
+                HISTORY_COLLECTION_ID,
+                docId,
+                { watchedAt: now } // Just update the time
+            );
+        } else {
+            // 3. If it does not exist, CREATE a new document
+            console.log(`Creating new watch history for movie: ${movieId}`);
+            await database.createDocument(
+                DATABASE_ID,
+                HISTORY_COLLECTION_ID,
+                ID.unique(),
+                {
+                    userId,
+                    movieId,
+                    watchedAt: now
+                }
+            );
+        }
+    } catch (error: any) {
+        console.error("Error in addWatchHistory:", error);
+        throw new Error(error.message);
+    }
 };
 
 export const getFavorites = async (userId: string): Promise<FavoriteItem[]> => {

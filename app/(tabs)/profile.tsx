@@ -36,7 +36,7 @@ interface DeepLink {
 }
 
 const pricingTiers = {
-  premium: { "1m": 15000, "3m": 40000, "6m": 75000 },
+  premium: { "1m": 1, "3m": 40000, "6m": 75000 },
   series: { "1m": 7500, "3m": 21000, "6m": 40000 },
   movies: { "1m": 11500, "3m": 30000, "6m": 55000 },
 };
@@ -45,11 +45,11 @@ type TimeOption = "1m" | "3m" | "6m";
 
 const Profile = () => {
   const router = useRouter();
-  const { user, isLoggingOut, logout } = useGlobalContext();
+  const { user, isLoading, setIsLoading, isLoggingOut, logout } = useGlobalContext();
 
   const [watchHistoryMovies, setWatchHistoryMovies] = useState<Movie[]>([]);
   const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   // --- 2. COPY THE STATE VARIABLES FOR THE PAYMENT FLOW ---
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -208,15 +208,33 @@ const Profile = () => {
     p.movieId.includes("ALL_ACCESS"),
   );
 
+  if (isLoading) {
+    return (
+      <SafeAreaView className="bg-primary flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#FF6B6B" />
+      </SafeAreaView>
+    );
+  }
+
   if (!user) {
     return (
-      <SafeAreaView className="bg-primary flex-1 justify-center items-center p-4">
-        <Text className="text-lightText text-lg font-semibold text-center">
-          Please Log In
+      <SafeAreaView className="bg-primary flex-1 justify-center items-center px-8">
+        <Image
+          source={require('@/assets/icons/person.png')} 
+          className="w-24 h-24"
+          tintColor="#FF6B6B"
+        />
+        <Text className="text-white text-2xl font-bold text-center mt-6">
+          Таны профайл
         </Text>
-        <Text className="text-lightText text-center mt-2">
-          Log in to view your profile, history, and favorites.
+        <Text className="text-white text-center mt-2">
+          Та өөрийн үзсэн болон дуртай киноны жагсаалтаа харахын тулд нэвтэрнэ үү.
         </Text>
+        <CustomButton
+          title="Нэвтрэх (Sign In)"
+          handlePress={() => router.push('/sign-in')}
+          containerStyles="w-full mt-8"
+        />
       </SafeAreaView>
     );
   }
@@ -302,7 +320,7 @@ const Profile = () => {
                 {activeSubscription.movieId
                   .replace("ALL_ACCESS_", "")
                   .toLowerCase()}{" "}
-                Plan
+                Багц
               </Text>
               <Text className="text-sm text-lightText text-white mt-4">
                 Дуусах хугацаа:{" "}
