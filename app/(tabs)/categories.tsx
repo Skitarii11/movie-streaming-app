@@ -11,6 +11,7 @@ const categoriesList = [
   "Түүхэн",
   "Адал явдал",
   "Инээдмийн",
+  "уран зөгнөл",
   // ... add all your categories here
 ];
 

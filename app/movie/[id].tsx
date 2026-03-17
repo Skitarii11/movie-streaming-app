@@ -320,7 +320,7 @@ const MovieDetails = () => {
           {categoryArray.length > 0 && (
             <View className="mt-4">
               <Text className="text-white text-lg font-bold mb-2">
-                Categories
+                Ангилал
               </Text>
               <FlatList
                 // Use the new array we just created

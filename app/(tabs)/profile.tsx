@@ -161,7 +161,7 @@ const Profile = () => {
         "68befe5900373eeeff5a",
         JSON.stringify({
           userId: user.$id,
-          movieId: purchaseType,
+          movieId: activeSubscription?.$id ?? purchaseType,
           amount: price,
           purchaseType: selectedBundle,
           movieTitle: `Subscription: ${selectedBundle}`,
@@ -180,6 +180,23 @@ const Profile = () => {
       Alert.alert("Error", `Failed to generate QR code: ${e.message}`);
     }
   };
+
+  const handleRenewSubscription = () => {
+    if (!activeSubscription) return;
+
+    // 1. Determine the bundle from the existing subscription
+    const bundle = activeSubscription.movieId.replace('ALL_ACCESS_', '').toLowerCase() as BundleOption;
+    
+    // 2. Pre-select the bundle
+    setSelectedBundle(bundle);
+    
+    // 3. Skip directly to the 'time' selection stage
+    setPaymentStage('time');
+    
+    // 4. Show the modal
+    setShowPaymentModal(true);
+  };
+
 
   const handleDeepLinkPress = async (url: string) => {
     // Check if the device can handle the deep link URL
@@ -327,9 +344,9 @@ const Profile = () => {
                 {new Date(activeSubscription.expiresAt).toLocaleDateString()}
               </Text>
               {/* This button could navigate to a "Manage Subscription" page in the future */}
-              <TouchableOpacity className="bg-accent rounded-full py-3 mt-4">
+              <TouchableOpacity onPress={handleRenewSubscription} className="bg-accent rounded-full py-3 mt-4">
                 <Text className="text-white font-bold text-center">
-                  Сунгах / Засах
+                  Сунгах
                 </Text>
               </TouchableOpacity>
             </View>

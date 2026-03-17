@@ -129,7 +129,7 @@ const Index = () => {
             </View>
           )}
 
-          <View className="mb-8">
+          <View className="">
                 <SectionHeader
                   title='шинэ кинонууд'
                   viewAllHref={`/category/шинэ кино`}

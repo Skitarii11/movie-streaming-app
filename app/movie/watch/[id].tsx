@@ -1,6 +1,6 @@
 import { AVPlaybackStatus, ResizeMode, Video } from "expo-av";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 import { icons } from "@/constants/icons";
 import { useGlobalContext } from "@/context/GlobalProvider";
@@ -24,6 +25,8 @@ const WatchPage = () => {
   const { id } = useLocalSearchParams();
   const { user } = useGlobalContext();
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
+  const videoPlayerRef = useRef<Video>(null);
 
   // Call the screen guard hook unconditionally at the top
   useScreenGuard();
@@ -35,17 +38,62 @@ const WatchPage = () => {
     error,
   } = useFetch(() => getMovieById(id as string));
 
+  
+  const movieData = movie as Movie;
+  useEffect(() => {
+    const lockToPortrait = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+
+    const unlockRotation = async () => {
+      // This allows the screen to rotate to any orientation the device supports
+      await ScreenOrientation.unlockAsync();
+    };
+
+    if (selectedVideo) {
+      // When the video modal opens, unlock rotation
+      unlockRotation();
+    } else {
+      // When the video modal closes, lock it back to portrait
+      lockToPortrait();
+    }
+
+    // A cleanup function to ensure we always lock back to portrait if the page is left
+    return () => {
+      lockToPortrait();
+    };
+  }, [selectedVideo]);
+
   useEffect(() => {
     if (user?.$id && id) {
       addWatchHistory(user.$id, id as string);
     }
   }, [user, id]);
 
+  const handleEpisodePress = (episodeUrl: string, index: number) => {
+    setSelectedVideo(episodeUrl);
+    setCurrentEpisodeIndex(index);
+  };
+
+  const playNextEpisode = () => {
+    if (movie && movieData.episodeUrl && currentEpisodeIndex < movieData.episodeUrl.length - 1) {
+      const nextIndex = currentEpisodeIndex + 1;
+      const nextEpisodeUrl = movieData.episodeUrl[nextIndex];
+      setCurrentEpisodeIndex(nextIndex);
+      setSelectedVideo(nextEpisodeUrl);
+      // Optional: You can use the ref to seek to the beginning if needed
+      videoPlayerRef.current?.setPositionAsync(0);
+    } else {
+      // We've reached the end of the series
+      setSelectedVideo(null); // Close the player
+    }
+  };
+
   // --- RENDER LOGIC MOVED INTO A HELPER FUNCTION ---
   // This function will decide what to show based on the loading/error state
   const renderContent = () => {
     // 1. Handle loading state
-    if (loading) {
+    if (loading || !movie) {
       return (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#AB8BFF" />
@@ -70,14 +118,13 @@ const WatchPage = () => {
     }
 
     // 3. If data is loaded successfully, render the list
-    const movieData = movie as Movie;
     return (
       <FlatList
         data={movieData.episodeUrl}
         keyExtractor={(item, index) => `${item}-${index}`}
         renderItem={({ item, index }) => (
           <TouchableOpacity
-            onPress={() => setSelectedVideo(item)}
+            onPress={() => handleEpisodePress(item, index)}
             className="p-5 border-b-2 border-dark-200 flex-row justify-between items-center"
           >
             <Text className="text-white text-lg font-semibold">
@@ -127,6 +174,7 @@ const WatchPage = () => {
         animationType="slide"
         transparent={false}
         visible={!!selectedVideo}
+        supportedOrientations={['portrait', 'landscape']} 
         onRequestClose={() => setSelectedVideo(null)}
       >
         <View style={styles.videoContainer}>
@@ -139,7 +187,7 @@ const WatchPage = () => {
               shouldPlay
               onPlaybackStatusUpdate={(status: AVPlaybackStatus) => {
                 if (status.isLoaded && status.didJustFinish) {
-                  setSelectedVideo(null);
+                  playNextEpisode();
                 }
               }}
             />
