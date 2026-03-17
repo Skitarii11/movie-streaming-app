@@ -52,7 +52,7 @@ const CategoryPage = () => {
                 />
               </TouchableOpacity>
               <Text className="text-white text-2xl font-bold ml-4">
-                Category: <Text className="text-accent">{categoryName}</Text>
+                Ангилал: <Text className="text-accent">{categoryName}</Text>
               </Text>
             </View>
 

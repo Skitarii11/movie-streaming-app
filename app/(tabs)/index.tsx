@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 
-import { getAllMovies, getTrendingMovies } from "@/services/appwrite";
+import { getAllMovies, getMoviesByCategory, getTrendingMovies } from "@/services/appwrite";
 import useFetch from "@/services/usefetch";
 
 import { icons } from "@/constants/icons";
@@ -20,11 +20,15 @@ import { icons } from "@/constants/icons";
 import MovieCard from "@/components/MovieCard";
 import SlideshowCard from "@/components/SlideshowCard";
 import TrendingCard from "@/components/TrendingCard";
+import MovieCarousel from "@/components/MovieCarousel";
+import SectionHeader from "@/components/SectionHeader";
 
 const { width } = Dimensions.get("window");
 
 const Index = () => {
   const router = useRouter();
+
+  const { data: newMovies, loading: newMoviesLoading } = useFetch(() => getMoviesByCategory("шинэ кино"));
 
   const {
     data: trendingMovies,
@@ -36,7 +40,7 @@ const Index = () => {
     data: movies,
     loading: moviesLoading,
     error: moviesError,
-  } = useFetch(getAllMovies);
+  } = useFetch(() => getAllMovies(1));
 
   const flatListRef = useRef<FlatList<TrendingMovie>>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -125,26 +129,36 @@ const Index = () => {
             </View>
           )}
 
-          <View className="mt-8">
-            <Text className="text-lg text-white font-bold mt-5 mb-3">
-              Сүүлийн үеийн кинонууд
-            </Text>
+          <View className="mb-8">
+                <SectionHeader
+                  title='шинэ кино кинонууд'
+                  viewAllHref={`/category/шинэ кино`}
+                />
+                <FlatList
+                  data={newMovies || []}
+                  keyExtractor={(item) => `шинэ кино-${item.$id}`}
+                  renderItem={({ item }) => (
+                    <MovieCard movie={item} containerStyles="w-36 mr-4" />
+                  )}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingLeft: 16 }}
+                />
+          </View>
 
+          <View className="mt-8">
+            <SectionHeader
+              title='Бүх кинонууд'
+              viewAllHref={`/all-movies`}
+            />
             <FlatList
               data={movies as Movie[]}
               renderItem={({ item }) => (
-                <MovieCard movie={item} containerStyles="w-[30%]" />
+                <MovieCard movie={item} containerStyles="w-36 mr-4" />
               )}
-              keyExtractor={(item) => `latest-${item.$id}`}
-              numColumns={3}
-              columnWrapperStyle={{
-                justifyContent: "flex-start",
-                gap: 20,
-                paddingRight: 5,
-                marginBottom: 10,
-              }}
-              className="mt-2 pb-32"
-              scrollEnabled={false}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingLeft: 16 }}
             />
           </View>
         </View>

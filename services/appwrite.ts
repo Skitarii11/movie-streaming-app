@@ -215,15 +215,19 @@ export const signOut = async () => {
 };
 
 // --- MOVIE DATABASE FUNCTIONS ---
-export const getAllMovies = async (): Promise<Movie[]> => {
-  // <-- Add explicit return type
+export const getAllMovies = async (page: number, limit: number = 10): Promise<Movie[]> => {
   try {
+    const offset = (page - 1) * limit; // Calculate the starting point
+
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
-      [Query.orderDesc("$createdAt")],
+      [
+        Query.orderDesc("$createdAt"),
+        Query.limit(limit), // Get 'limit' documents per page
+        Query.offset(offset) // Start from the calculated offset
+      ]
     );
-    // Use 'as' to cast the generic Document[] to your specific Movie[]
     return movies.documents as Movie[];
   } catch (error: any) {
     console.error("Error in getAllMovies:", error);
@@ -238,7 +242,7 @@ export const searchMovies = async (query: string): Promise<Movie[]> => {
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
-      [Query.search("title", query)],
+      [Query.search("title", query),Query.limit(100)],
     );
     // Use 'as' to cast the generic Document[] to your specific Movie[]
     return movies.documents as Movie[];
@@ -287,7 +291,9 @@ export const getMoviesByCategory = async (
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       // Use Query.search, which works with a full-text index
-      [Query.search("categories", category)],
+      [Query.search("categories", category),
+        Query.limit(100)
+      ],
     );
     return movies.documents as unknown as Movie[];
   } catch (error: any) {
@@ -334,7 +340,7 @@ export const checkForAccess = async (
     }
 
     // 3. If no series access, check for Movie access (if content is a movie)
-    if (movie.type === "movie") {
+    if (movie.type === "short_drama") {
       const hasMoviesAccess = userPurchases.some(
         (p) => p.movieId === "ALL_ACCESS_MOVIES",
       );
@@ -398,7 +404,7 @@ export const getFavorites = async (userId: string): Promise<FavoriteItem[]> => {
     const favorites = await database.listDocuments(
       DATABASE_ID,
       FAVORITES_COLLECTION_ID,
-      [Query.equal("userId", userId), Query.orderDesc("$createdAt")],
+      [Query.equal("userId", userId), Query.orderDesc("$createdAt"), Query.limit(100)],
     );
     return favorites.documents as unknown as FavoriteItem[];
   } catch (error: any) {

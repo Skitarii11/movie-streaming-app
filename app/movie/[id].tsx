@@ -361,16 +361,16 @@ const MovieDetails = () => {
               // STAGE 1: BUNDLE SELECTION
               <>
                 <CustomButton
-                  title="Бүртгүүлэх (Бүх кинонд хандах)"
+                  title="Бүх кино багц"
                   handlePress={() => handleBundleSelect("premium")}
                 />
                 <CustomButton
-                  title="Бүх цувралд хандах"
+                  title="Цувралын багц"
                   handlePress={() => handleBundleSelect("series")}
                   containerStyles="mt-4"
                 />
                 <CustomButton
-                  title="Бүх кинонд хандах"
+                  title="Богино драма багц"
                   handlePress={() => handleBundleSelect("movies")}
                   containerStyles="mt-4"
                 />

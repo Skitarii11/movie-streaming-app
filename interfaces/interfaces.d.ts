@@ -6,7 +6,7 @@ interface Movie {
   releaseYear: number;
   rating: number;
   price: number;
-  type: "movie" | "series";
+  type: "short_drama" | "series";
   trailerUrl?: string;
   episodeUrl: string[];
   $collectionId: string;

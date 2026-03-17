@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { FlatList, SafeAreaView, ScrollView, Text, View } from "react-native";
 
 const categoriesList = [
+  "шинэ кино",
   "Орчин үе",
   "Түүхэн",
   "Адал явдал",

@@ -362,7 +362,7 @@ const Profile = () => {
             {paymentStage === "bundle" ? (
               <>
                 <CustomButton
-                  title="Premium (Бүх кино, цуврал)"
+                  title="Бүх кинонд хандах"
                   handlePress={() => handleBundleSelect("premium")}
                 />
                 <CustomButton
@@ -371,7 +371,7 @@ const Profile = () => {
                   containerStyles="mt-4"
                 />
                 <CustomButton
-                  title="Киноны багц"
+                  title="Богино драма багц"
                   handlePress={() => handleBundleSelect("movies")}
                   containerStyles="mt-4"
                 />
