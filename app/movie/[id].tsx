@@ -86,19 +86,17 @@ const MovieDetails = () => {
   }, [favorites, movie]);
 
   const handleFavoriteToggle = async () => {
-    if (!user || !movie) return; // Guard clause
+    if (!user || !movie) return;
 
     if (isFavorited && favoriteDocId) {
       await removeFavorite(favoriteDocId);
     } else {
       await addFavorite(user.$id, movie.$id);
     }
-    // 3. Refetch the favorites list to update the UI
     await refetchFavorites();
   };
 
   // --- EFFECT FOR CLEANUP ---
-  // This is crucial to stop polling if the user navigates away
   useEffect(() => {
     return () => {
       if (pollingInterval.current) {
@@ -111,7 +109,6 @@ const MovieDetails = () => {
     useCallback(() => {
       const checkAccessStatus = async () => {
         if (movie && user) {
-          // Call the new, robust function from appwrite.ts
           const access = await checkForAccess(movie as Movie, user.$id);
           setHasAccess(access);
         }
@@ -135,9 +132,9 @@ const MovieDetails = () => {
         "68befe5900373eeeff5a",
         JSON.stringify({
           userId: user.$id,
-          movieId: purchaseType, // Send the new bundle ID
+          movieId: purchaseType,
           amount: price,
-          purchaseType: selectedBundle, // 'premium', 'series', or 'movies'
+          purchaseType: selectedBundle,
           movieTitle: `Subscription: ${selectedBundle}`,
           duration: timeOption,
         }),
@@ -156,10 +153,8 @@ const MovieDetails = () => {
   };
 
   const handleDeepLinkPress = async (url: string) => {
-    // Check if the device can handle the deep link URL
     const supported = await Linking.canOpenURL(url);
     if (supported) {
-      // Open the banking app
       await Linking.openURL(url);
     } else {
       Alert.alert(
@@ -169,7 +164,6 @@ const MovieDetails = () => {
     }
   };
 
-  // --- pollForPayment function ---
   const pollForPayment = (purchaseId: string) => {
     setIsCheckingPayment(true);
     pollingInterval.current = setInterval(async () => {
@@ -204,7 +198,6 @@ const MovieDetails = () => {
 
   const handleWatchNow = async () => {
     if (!user) {
-      // If no user, navigate them to the profile tab to sign in.
       Alert.alert(
         "Нэвтрэх шаардлагатай",
         "Кино үзэхийн тулд та эхлээд нэвтрэх эсвэл бүртгүүлэх шаардлагатай.",
@@ -225,8 +218,6 @@ const MovieDetails = () => {
     }
   };
 
-  // --- RENDER LOGIC ---
-
   if (loading) {
     return (
       <SafeAreaView className="bg-primary flex-1 justify-center items-center">
@@ -235,7 +226,6 @@ const MovieDetails = () => {
     );
   }
 
-  // 3. Handle the error or "no data" state AFTER loading is false.
   if (error || !movie) {
     return (
       <SafeAreaView className="bg-primary flex-1 justify-center items-center p-4">
@@ -323,7 +313,6 @@ const MovieDetails = () => {
                 Ангилал
               </Text>
               <FlatList
-                // Use the new array we just created
                 data={categoryArray}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => <CategoryChip category={item} />}
@@ -457,7 +446,7 @@ const MovieDetails = () => {
             <FlatList
               data={deepLinks}
               keyExtractor={(item) => item.name}
-              numColumns={4} // Adjust for a nice grid
+              numColumns={4}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleDeepLinkPress(item.link)}
@@ -477,7 +466,7 @@ const MovieDetails = () => {
             <TouchableOpacity
               onPress={() => {
                 setQrCodeImage(null);
-                setDeepLinks([]); // Clear the deep links as well
+                setDeepLinks([]);
                 setIsCheckingPayment(false);
                 if (pollingInterval.current)
                   clearInterval(pollingInterval.current);
@@ -503,7 +492,6 @@ const MovieDetails = () => {
             resizeMode={ResizeMode.CONTAIN}
             shouldPlay
             onPlaybackStatusUpdate={(status: AVPlaybackStatus) => {
-              // This is a type-safe way to check if the video finished
               if (status.isLoaded && status.didJustFinish) {
                 setIsPlayingTrailer(false);
               }

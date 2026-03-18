@@ -28,10 +28,8 @@ const WatchPage = () => {
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
   const videoPlayerRef = useRef<Video>(null);
 
-  // Call the screen guard hook unconditionally at the top
   useScreenGuard();
 
-  // Call the data fetching hook unconditionally
   const {
     data: movie,
     loading,
@@ -46,19 +44,15 @@ const WatchPage = () => {
     };
 
     const unlockRotation = async () => {
-      // This allows the screen to rotate to any orientation the device supports
       await ScreenOrientation.unlockAsync();
     };
 
     if (selectedVideo) {
-      // When the video modal opens, unlock rotation
       unlockRotation();
     } else {
-      // When the video modal closes, lock it back to portrait
       lockToPortrait();
     }
 
-    // A cleanup function to ensure we always lock back to portrait if the page is left
     return () => {
       lockToPortrait();
     };
@@ -81,18 +75,13 @@ const WatchPage = () => {
       const nextEpisodeUrl = movieData.episodeUrl[nextIndex];
       setCurrentEpisodeIndex(nextIndex);
       setSelectedVideo(nextEpisodeUrl);
-      // Optional: You can use the ref to seek to the beginning if needed
       videoPlayerRef.current?.setPositionAsync(0);
     } else {
-      // We've reached the end of the series
-      setSelectedVideo(null); // Close the player
+      setSelectedVideo(null);
     }
   };
 
-  // --- RENDER LOGIC MOVED INTO A HELPER FUNCTION ---
-  // This function will decide what to show based on the loading/error state
   const renderContent = () => {
-    // 1. Handle loading state
     if (loading || !movie) {
       return (
         <View className="flex-1 justify-center items-center">
@@ -101,7 +90,6 @@ const WatchPage = () => {
       );
     }
 
-    // 2. Handle error or no data state
     if (error || !movie) {
       return (
         <View className="flex-1 justify-center items-center p-4">
@@ -117,7 +105,6 @@ const WatchPage = () => {
       );
     }
 
-    // 3. If data is loaded successfully, render the list
     return (
       <FlatList
         data={movieData.episodeUrl}

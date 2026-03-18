@@ -3,8 +3,8 @@ import { View, Text, ScrollView, Image, Alert, TouchableOpacity } from "react-na
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
 
-import { useGlobalContext } from "@/context/GlobalProvider"; // You will create this
-import { signIn, getCurrentUser, appwrite } from "@/services/appwrite"; // You will add 'signIn' to this file
+import { useGlobalContext } from "@/context/GlobalProvider";
+import { signIn, getCurrentUser, appwrite } from "@/services/appwrite";
 
 import { icons } from "@/constants/icons";
 import FormField from "@/components/FormField";
@@ -12,7 +12,6 @@ import CustomButton from "@/components/CustomButton";
 
 const SignIn = () => {
   const { setUser, setIsLoggedIn } = useGlobalContext();
-  // Change the state to use 'phone'
   const [form, setForm] = useState({ phone: "", password: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -26,7 +25,6 @@ const SignIn = () => {
   const [userIdToReset, setUserIdToReset] = useState<string | null>(null);
 
   const submit = async () => {
-    // Update the validation check
     if (!form.phone || !form.password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -34,7 +32,6 @@ const SignIn = () => {
 
     setIsSubmitting(true);
     try {
-      // Call the updated signIn function
       await signIn(form.phone, form.password);
       const result = await getCurrentUser();
       setUser(result);
@@ -115,7 +112,7 @@ const SignIn = () => {
                   value={form.phone}
                   handleChangeText={(e) => setForm({ ...form, phone: e })}
                   otherStyles="mt-7"
-                  keyboardType="phone-pad" // Use a numeric keyboard
+                  keyboardType="phone-pad"
                   placeholder="Your phone number"
                 />
 

@@ -1,17 +1,35 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
+import { useEffect, useState, useMemo  } from "react";
+import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 
 import { icons } from "@/constants/icons";
-import { images } from "@/constants/images";
 
-import { searchMovies, updateSearchCount } from "@/services/appwrite";
+import { queryMovies, updateSearchCount } from "@/services/appwrite";
 import useFetch from "@/services/usefetch";
 
 import MovieCard from "@/components/MovieCard";
 import SearchBar from "@/components/SearchBar";
 
+const typeFilters = ['all', 'series', 'short_drama'];
+const categoryFilters = [
+  "all", "шинэ кино", "Орчин үе", "Адал явдал", "Анимэйшн", "Инээдмийн", 
+  "Гэмт хэрэг", "Тулаан", "Триллер", "Сэтгэл зүй", "Нууцлаг", "Драма", 
+  "Аймшиг", "Дайн", "Түүхэн", "Өшөө авалт", "Хайр дурлал", "Sci-Fi", "Уран зөгнөлт",
+];
+
+const FilterButton = ({ label, isActive, onPress }: { label: string, isActive: boolean, onPress: () => void }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className={`px-4 py-2 rounded-lg mr-3 ${isActive ? 'bg-accent' : 'bg-secondary'}`}
+  >
+    <Text className={`capitalize ${isActive ? 'text-white' : 'text-white'}`}>{label}</Text>
+  </TouchableOpacity>
+);
+
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [activeType, setActiveType] = useState<'all' | 'series' | 'short_drama'>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const {
     data: movies = [],
@@ -19,35 +37,31 @@ const Search = () => {
     error,
     refetch: loadMovies,
     reset,
-  } = useFetch(() => searchMovies(searchQuery), false);
+  } =  useFetch(() => queryMovies(searchQuery, activeType, activeCategory));
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
   };
 
-  // Debounced search effect
+   useEffect(() => {
+    loadMovies();
+  }, [searchQuery, activeType, activeCategory]);
+
   useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      if (searchQuery.trim()) {
-        // Now 'newMovies' will be correctly typed as 'Movie[] | null'
-        const newMovies = await loadMovies();
-
-        if (newMovies && newMovies.length > 0) {
-          await updateSearchCount(searchQuery.trim(), newMovies[0]);
+    const updateMetrics = async () => {
+        if (searchQuery.trim() && movies && movies.length > 0) {
+            await updateSearchCount(searchQuery.trim(), movies[0]);
         }
-      } else {
-        reset();
-      }
-    }, 500);
-
+    }
+    const timeoutId = setTimeout(updateMetrics, 600);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, movies]);
 
   return (
     <View className="flex-1 bg-primary">
       <FlatList
         className="px-5"
-        data={movies as Movie[]}
+        data={movies}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
           <MovieCard movie={item} containerStyles="w-[30%]" />
@@ -61,7 +75,6 @@ const Search = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
           <>
-            {/* ... Your Header JSX ... */}
             <View className="w-full flex-row justify-center mt-20 items-center">
               <Image source={icons.logo} className="w-12 h-10" />
             </View>
@@ -69,9 +82,44 @@ const Search = () => {
               <SearchBar
                 placeholder="Кино хайх"
                 value={searchQuery}
-                onChangeText={handleSearch}
+                onChangeText={setSearchQuery}
               />
             </View>
+
+            <View>
+              <Text className="text-lightText text-white mb-3">Төрөл</Text>
+              <FlatList
+                data={typeFilters}
+                keyExtractor={item => item}
+                renderItem={({item}) => (
+                  <FilterButton 
+                    label={item} 
+                    isActive={item === activeType}
+                    onPress={() => setActiveType(item as any)}
+                  />
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              />
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-lightText text-white mb-3">Ангилал</Text>
+              <FlatList
+                data={categoryFilters}
+                keyExtractor={item => item}
+                renderItem={({item}) => (
+                  <FilterButton 
+                    label={item} 
+                    isActive={item === activeCategory}
+                    onPress={() => setActiveCategory(item)}
+                  />
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              />
+            </View>
+
             {loading && (
               <ActivityIndicator
                 size="large"
@@ -85,12 +133,11 @@ const Search = () => {
               </Text>
             )}
 
-            {/* THIS IS THE FIX for the second error */}
             {!loading &&
               !error &&
               searchQuery.trim() &&
               movies &&
-              movies.length > 0 && ( // Be more explicit here
+              movies.length > 0 && (
                 <Text className="text-xl text-white font-bold">
                   Хайлтын үр дүн{" "}
                   <Text className="text-accent">{searchQuery}</Text>
@@ -99,7 +146,7 @@ const Search = () => {
           </>
         }
         ListEmptyComponent={
-          !loading && !error ? (
+          !loading && !error && movies && movies.length === 0 ? (
             <View className="mt-10 px-5">
               <Text className="text-center text-gray-500">
                 {searchQuery.trim()
@@ -110,6 +157,7 @@ const Search = () => {
           ) : null
         }
       />
+      
     </View>
   );
 };

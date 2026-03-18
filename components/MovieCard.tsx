@@ -9,7 +9,6 @@ interface MovieCardProps {
 const MovieCard = ({ movie, containerStyles }: MovieCardProps) => {
   return (
     <Link href={`/movie/${movie.$id}`} asChild>
-      {/* 2. Apply the custom styles to the main container */}
       <TouchableOpacity className={`space-y-2 ${containerStyles}`}>
         <View className="w-full h-48">
           <Image

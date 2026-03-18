@@ -145,7 +145,6 @@ export const createUser = async (
   try {
     const email = `${phone}@example.com`;
 
-    // 1. Create the Auth user
     const newAccount = await account.create(
       ID.unique(),
       email,
@@ -154,22 +153,18 @@ export const createUser = async (
     );
     if (!newAccount) throw new Error("Account creation failed");
 
-    // 2. Sign the user in immediately to get a session
     await signIn(phone, password);
 
-    // 3. Create the corresponding document in the 'profiles' collection
-    //    We use the new user's ID as the document ID for easy mapping
     await database.createDocument(
       DATABASE_ID,
       PROFILES_COLLECTION_ID,
-      newAccount.$id, // Use the user's ID as the document ID
+      newAccount.$id,
       {
         userId: newAccount.$id,
         registrationId: registrationId,
       },
     );
 
-    // This part is now redundant as we don't use prefs, but it doesn't hurt
     await account.updatePhone(`+976${phone}`, password);
 
     return newAccount;
@@ -181,10 +176,8 @@ export const createUser = async (
 
 export const signIn = async (phone: string, password: string) => {
   try {
-    // 1. Create the dummy email from the phone number
     const email = `${phone}@example.com`;
 
-    // 2. Use the standard email/password session creation method
     const session = await account.createEmailPasswordSession(email, password);
     return session;
   } catch (error: any) {
@@ -217,15 +210,15 @@ export const signOut = async () => {
 // --- MOVIE DATABASE FUNCTIONS ---
 export const getAllMovies = async (page: number, limit: number = 10): Promise<Movie[]> => {
   try {
-    const offset = (page - 1) * limit; // Calculate the starting point
+    const offset = (page - 1) * limit;
 
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       [
         Query.orderDesc("$createdAt"),
-        Query.limit(limit), // Get 'limit' documents per page
-        Query.offset(offset) // Start from the calculated offset
+        Query.limit(limit),
+        Query.offset(offset)
       ]
     );
     return movies.documents as Movie[];
@@ -237,14 +230,12 @@ export const getAllMovies = async (page: number, limit: number = 10): Promise<Mo
 
 // Search for movies by title
 export const searchMovies = async (query: string): Promise<Movie[]> => {
-  // <-- Add explicit return type
   try {
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       [Query.search("title", query),Query.limit(100)],
     );
-    // Use 'as' to cast the generic Document[] to your specific Movie[]
     return movies.documents as Movie[];
   } catch (error: any) {
     console.error("Error in searchMovies:", error);
@@ -254,31 +245,21 @@ export const searchMovies = async (query: string): Promise<Movie[]> => {
 
 // Get a single movie by its document ID
 export const getMovieById = async (movieId: string): Promise<Movie | null> => {
-  // 1. Add explicit return type
   try {
     const movie = await database.getDocument(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
       movieId,
     );
-    // 2. Use a two-step cast to tell TypeScript the true shape of the document
     return movie as unknown as Movie;
   } catch (error: any) {
-    // --- THIS IS THE FIX ---
-    // Check if the error message indicates that the document was not found.
-    // This is a common and expected case in our 'save' page logic.
     if (error.message && error.message.includes("could not be found")) {
-      // It's a "not found" error. Fail silently by returning null without logging.
     } else {
-      // It's a different, unexpected error (e.g., network failure, permissions issue).
-      // We SHOULD log these to help with debugging future problems.
       console.error(
         `Unexpected error fetching movie by ID ${movieId}:`,
         error.message,
       );
     }
-
-    // In either case, return null to the calling function.
     return null;
   }
 };
@@ -290,7 +271,6 @@ export const getMoviesByCategory = async (
     const movies = await database.listDocuments(
       DATABASE_ID,
       MOVIES_COLLECTION_ID,
-      // Use Query.search, which works with a full-text index
       [Query.search("categories", category),
         Query.limit(100)
       ],
@@ -310,12 +290,8 @@ export const checkForAccess = async (
     if (!movie || !userId) return false;
 
     const userPurchases = await getUserPurchases(userId);
-    if (userPurchases.length === 0) return false; // No purchases, no access
+    if (userPurchases.length === 0) return false;
 
-    // --- The Correct "Waterfall" Logic ---
-
-    // 1. Check for the highest tier: Premium
-    // The .some() method is perfect for checking if at least one item in an array meets a condition.
     const hasPremium = userPurchases.some(
       (p) => p.movieId === "ALL_ACCESS_PREMIUM",
     );
@@ -323,10 +299,9 @@ export const checkForAccess = async (
       console.log(
         `Access granted for user ${userId} via Premium subscription.`,
       );
-      return true; // Premium grants access to everything.
+      return true;
     }
 
-    // 2. If no premium, check for Series access (if content is a series)
     if (movie.type === "series") {
       const hasSeriesAccess = userPurchases.some(
         (p) => p.movieId === "ALL_ACCESS_SERIES",
@@ -339,7 +314,6 @@ export const checkForAccess = async (
       }
     }
 
-    // 3. If no series access, check for Movie access (if content is a movie)
     if (movie.type === "short_drama") {
       const hasMoviesAccess = userPurchases.some(
         (p) => p.movieId === "ALL_ACCESS_MOVIES",
@@ -352,12 +326,11 @@ export const checkForAccess = async (
       }
     }
 
-    // 4. If none of the above, deny access.
     console.log(`Access denied for user ${userId} for movie ${movie.$id}.`);
     return false;
   } catch (error) {
     console.error("Error in checkForAccess:", error);
-    return false; // Default to no access on error
+    return false;
   }
 };
 
@@ -370,7 +343,7 @@ export const getWatchHistory = async (
       HISTORY_COLLECTION_ID,
       [
         Query.equal("userId", userId),
-        Query.orderDesc("watchedAt"), // Get the most recent first
+        Query.orderDesc("watchedAt"),
         Query.limit(10), // Limit to 10 for performance
       ],
     );
@@ -383,7 +356,6 @@ export const getWatchHistory = async (
 
 export const addWatchHistory = async (userId: string, movieId: string) => {
   try {
-        // 1. Check if a history item for this user and movie already exists
         const existingHistory = await database.listDocuments(
             DATABASE_ID,
             HISTORY_COLLECTION_ID,
@@ -396,7 +368,6 @@ export const addWatchHistory = async (userId: string, movieId: string) => {
         const now = new Date().toISOString();
 
         if (existingHistory.documents.length > 0) {
-            // 2. If it exists, UPDATE the timestamp
             const docId = existingHistory.documents[0].$id;
             console.log(`Updating watch history for movie: ${movieId}`);
             await database.updateDocument(
@@ -406,7 +377,6 @@ export const addWatchHistory = async (userId: string, movieId: string) => {
                 { watchedAt: now } // Just update the time
             );
         } else {
-            // 3. If it does not exist, CREATE a new document
             console.log(`Creating new watch history for movie: ${movieId}`);
             await database.createDocument(
                 DATABASE_ID,
@@ -441,15 +411,29 @@ export const getFavorites = async (userId: string): Promise<FavoriteItem[]> => {
 
 export const addFavorite = async (userId: string, movieId: string) => {
   try {
-    await database.createDocument(
+    const existingFavorites = await database.listDocuments(
       DATABASE_ID,
       FAVORITES_COLLECTION_ID,
-      ID.unique(),
-      {
-        userId,
-        movieId,
-      },
+      [
+        Query.equal('userId', userId),
+        Query.equal('movieId', movieId)
+      ]
     );
+
+    if (existingFavorites.documents.length === 0) {
+      await database.createDocument(
+        DATABASE_ID,
+        FAVORITES_COLLECTION_ID,
+        ID.unique(),
+        {
+          userId,
+          movieId,
+        }
+      );
+      console.log(`Added movie ${movieId} to favorites for user ${userId}.`);
+    } else {
+      console.log(`Movie ${movieId} is already in favorites for user ${userId}. Doing nothing.`);
+    }
   } catch (error: any) {
     console.error("Error in addFavorite:", error);
     throw new Error(error.message);
@@ -461,6 +445,38 @@ export const removeFavorite = async (docId: string) => {
     await database.deleteDocument(DATABASE_ID, FAVORITES_COLLECTION_ID, docId);
   } catch (error: any) {
     console.error("Error in removeFavorite:", error);
+    throw new Error(error.message);
+  }
+};
+
+export const queryMovies = async (
+    query: string,
+    type: 'all' | 'series' | 'short_drama',
+    category: string
+): Promise<Movie[]> => {
+  try {
+    const queries: string[] = [];
+
+    if (query) {
+      queries.push(Query.search("title", query));
+    }
+
+    if (type !== 'all') {
+      queries.push(Query.equal("type", type));
+    }
+
+    if (category !== 'all') {
+      queries.push(Query.search("categories", category));
+    }
+
+    const movies = await database.listDocuments(
+      DATABASE_ID,
+      MOVIES_COLLECTION_ID,
+      queries
+    );
+    return movies.documents as unknown as Movie[];
+  } catch (error: any) {
+    console.error("Error in queryMovies:", error);
     throw new Error(error.message);
   }
 };

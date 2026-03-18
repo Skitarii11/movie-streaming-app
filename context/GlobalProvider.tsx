@@ -12,12 +12,11 @@ import { useRouter } from "expo-router";
 import { Alert } from "react-native";
 import { Models } from "react-native-appwrite";
 
-// 1. UPDATE THE INTERFACE to include the setter functions
 interface IGlobalContext {
   isLoggedIn: boolean;
-  setIsLoggedIn: Dispatch<SetStateAction<boolean>>; // <-- ADD THIS
+  setIsLoggedIn: Dispatch<SetStateAction<boolean>>;
   user: Models.User<Models.Preferences> | null;
-  setUser: Dispatch<SetStateAction<Models.User<Models.Preferences> | null>>; // <-- ADD THIS
+  setUser: Dispatch<SetStateAction<Models.User<Models.Preferences> | null>>;
   isLoading: boolean;
   isLoggingOut: boolean;
   logout: () => Promise<void>;
@@ -81,13 +80,12 @@ const GlobalProvider = ({ children }: GlobalProviderProps) => {
 
   return (
     <GlobalContext.Provider
-      // 2. UPDATE THE VALUE to pass the setter functions down
       value={{
         isLoading,
         isLoggedIn,
-        setIsLoggedIn, // <-- ADD THIS
+        setIsLoggedIn,
         user,
-        setUser,       // <-- ADD THIS
+        setUser,
         logout,
         isLoggingOut,
         setIsLoading,

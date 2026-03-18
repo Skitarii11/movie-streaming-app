@@ -36,12 +36,18 @@ interface DeepLink {
 }
 
 const pricingTiers = {
-  premium: { "1m": 1, "3m": 40000, "6m": 75000 },
+  premium: { "1m": 15000, "3m": 40000, "6m": 75000 },
   series: { "1m": 7500, "3m": 21000, "6m": 40000 },
   movies: { "1m": 11500, "3m": 30000, "6m": 55000 },
 };
 type BundleOption = "premium" | "series" | "movies";
 type TimeOption = "1m" | "3m" | "6m";
+
+const bundleDisplayNames = {
+  premium: 'Бүх кино',
+  series: 'Цуврал',
+  movies: 'Богино драма',
+};
 
 const Profile = () => {
   const router = useRouter();
@@ -51,7 +57,7 @@ const Profile = () => {
   const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-  // --- 2. COPY THE STATE VARIABLES FOR THE PAYMENT FLOW ---
+  // --- COPY THE STATE VARIABLES FOR THE PAYMENT FLOW ---
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [qrCodeImage, setQrCodeImage] = useState<string | null>(null);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
@@ -137,7 +143,7 @@ const Profile = () => {
         if (response.status === "PAID") {
           if (pollingInterval.current) clearInterval(pollingInterval.current);
           setIsCheckingPayment(false);
-          setQrCodeImage(null); // Close the QR modal
+          setQrCodeImage(null);
           Alert.alert(
             "Success",
             "Төлбөр амжилттай боллоо! Та одоо хандах эрхтэй.",
@@ -184,25 +190,19 @@ const Profile = () => {
   const handleRenewSubscription = () => {
     if (!activeSubscription) return;
 
-    // 1. Determine the bundle from the existing subscription
     const bundle = activeSubscription.movieId.replace('ALL_ACCESS_', '').toLowerCase() as BundleOption;
     
-    // 2. Pre-select the bundle
     setSelectedBundle(bundle);
     
-    // 3. Skip directly to the 'time' selection stage
     setPaymentStage('time');
     
-    // 4. Show the modal
     setShowPaymentModal(true);
   };
 
 
   const handleDeepLinkPress = async (url: string) => {
-    // Check if the device can handle the deep link URL
     const supported = await Linking.canOpenURL(url);
     if (supported) {
-      // Open the banking app
       await Linking.openURL(url);
     } else {
       Alert.alert(
@@ -334,16 +334,13 @@ const Profile = () => {
           {activeSubscription ? (
             <View className="p-4 bg-secondary rounded-2xl">
               <Text className="text-lg font-bold text-lightText text-white capitalize">
-                {activeSubscription.movieId
-                  .replace("ALL_ACCESS_", "")
-                  .toLowerCase()}{" "}
+                {bundleDisplayNames[activeSubscription.movieId.replace('ALL_ACCESS_', '').toLowerCase() as keyof typeof bundleDisplayNames]}{" "}
                 Багц
               </Text>
               <Text className="text-sm text-lightText text-white mt-4">
                 Дуусах хугацаа:{" "}
                 {new Date(activeSubscription.expiresAt).toLocaleDateString()}
               </Text>
-              {/* This button could navigate to a "Manage Subscription" page in the future */}
               <TouchableOpacity onPress={handleRenewSubscription} className="bg-accent rounded-full py-3 mt-4">
                 <Text className="text-white font-bold text-center">
                   Сунгах
@@ -355,7 +352,6 @@ const Profile = () => {
               <Text className="text-lightText text-white">
                 You have no active subscriptions.
               </Text>
-              {/* This button now triggers the payment modal */}
               <TouchableOpacity
                 onPress={handleSubscribeNow}
                 className="bg-accent rounded-full py-3 mt-4 px-8"
@@ -476,7 +472,7 @@ const Profile = () => {
             <FlatList
               data={deepLinks}
               keyExtractor={(item) => item.name}
-              numColumns={4} // Adjust for a nice grid
+              numColumns={4}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => handleDeepLinkPress(item.link)}
@@ -496,7 +492,7 @@ const Profile = () => {
             <TouchableOpacity
               onPress={() => {
                 setQrCodeImage(null);
-                setDeepLinks([]); // Clear the deep links as well
+                setDeepLinks([]);
                 setIsCheckingPayment(false);
                 if (pollingInterval.current)
                   clearInterval(pollingInterval.current);

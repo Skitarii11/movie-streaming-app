@@ -22,6 +22,7 @@ import SlideshowCard from "@/components/SlideshowCard";
 import TrendingCard from "@/components/TrendingCard";
 import MovieCarousel from "@/components/MovieCarousel";
 import SectionHeader from "@/components/SectionHeader";
+import { images } from "@/constants/images";
 
 const { width } = Dimensions.get("window");
 
@@ -57,7 +58,7 @@ const Index = () => {
         setActiveIndex(nextIndex);
       }, 4000);
     }
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, [activeIndex, trendingMovies]);
 
   return (
@@ -68,7 +69,7 @@ const Index = () => {
       >
         <View className="px-4">
           <View className="flex-row items-center justify-between px-4 mt-12 mb-6">
-            <Image source={icons.logo} className="w-12 h-10" />
+            <Image source={images.homelogo} className="w-[50%] h-10" />
             <TouchableOpacity onPress={() => router.push("/search")}>
               <Image
                 source={icons.search}

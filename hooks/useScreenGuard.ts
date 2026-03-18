@@ -27,47 +27,34 @@ export const useScreenGuard = (isActive: boolean = true) => {
     }
   };
 
-  // --- THE DEFINITIVE FIX: COMBINING HOOKS ---
-
-  // 1. useFocusEffect: Handles navigation TO and FROM the screen
   useFocusEffect(
     React.useCallback(() => {
       if (!isActive) return;
 
-      // When the screen is focused, prevent capture
       preventCapture();
 
-      // When the screen is unfocused, allow capture again
       return () => {
         allowCapture();
       };
     }, [isActive])
   );
 
-  // 2. useEffect for AppState: Handles the app being backgrounded or foregrounded
   React.useEffect(() => {
     if (!isActive) return;
 
-    // Listen for changes in the app's state (active, background, etc.)
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
-        // When the app becomes active, re-apply the protection
         preventCapture();
       } else {
-        // When the app goes to the background, we can allow capture
-        // This is important for letting other apps function normally
         allowCapture();
       }
     });
 
-    // Cleanup the listener when the component unmounts
     return () => {
       subscription.remove();
     };
   }, [isActive]);
 
-
-  // 3. useEffect for iOS screenshot detection (this logic is correct)
   React.useEffect(() => {
     if (!isActive) return;
     

@@ -12,13 +12,11 @@ import CustomButton from "@/components/CustomButton";
 
 const SignUp = () => {
   const { setUser, setIsLoggedIn } = useGlobalContext();
-  // Change the state to use 'phone'
   const [form, setForm] = useState({ username: "", phone: "", password: "", registrationId: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const submit = async () => {
-    // Update the validation check
     if (!form.username || !form.phone || !form.password || !form.registrationId) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -26,7 +24,6 @@ const SignUp = () => {
 
     setIsSubmitting(true);
     try {
-      // Call the updated createUser function
       const result = await createUser(form.phone, form.password, form.username, form.registrationId);
       setUser(result);
       setIsLoggedIn(true);
@@ -60,7 +57,7 @@ const SignUp = () => {
             value={form.phone}
             handleChangeText={(e) => setForm({ ...form, phone: e })}
             otherStyles="mt-7"
-            keyboardType="phone-pad" // Use a numeric keyboard
+            keyboardType="phone-pad"
             placeholder="Your phone number"
           />
 

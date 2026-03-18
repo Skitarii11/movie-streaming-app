@@ -19,8 +19,6 @@ const AuthLayout = () => {
         />
       </Stack>
 
-      {/* It's good practice to keep this StatusBar component here 
-          to style the status bar specifically for the auth screens */}
       <StatusBar backgroundColor="#030014" style="light" />
     </>
   );

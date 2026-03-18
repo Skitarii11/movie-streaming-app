@@ -6,13 +6,24 @@ import { useRouter } from "expo-router";
 import { FlatList, SafeAreaView, ScrollView, Text, View } from "react-native";
 
 const categoriesList = [
-  "шинэ кино",
+  "Шинэ кино",
   "Орчин үе",
-  "Түүхэн",
   "Адал явдал",
+  "Анимэйшн",
   "Инээдмийн",
-  "уран зөгнөл",
-  // ... add all your categories here
+  "Гэмт хэрэг",
+  "Тулаан",
+  "Триллер",
+  "Сэтгэл зүй",
+  "Нууцлаг",
+  "Драма", 
+  "Аймшиг",
+  "Дайн", 
+  "Түүхэн", 
+  "Өшөө авалт", 
+  "Хайр дурлал", 
+  "Sci-Fi", 
+  "Уран зөгнөлт",
 ];
 
 interface CategorySectionProps {
@@ -35,7 +46,6 @@ const CategoriesPage = () => {
   );
 };
 
-// Create a helper component to keep the code clean
 const CategorySection = ({ categoryName }: CategorySectionProps) => {
   const router = useRouter();
   const { data: movies } = useFetch(() => getMoviesByCategory(categoryName));

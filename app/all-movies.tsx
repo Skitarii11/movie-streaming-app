@@ -12,18 +12,18 @@ const AllMoviesPage = () => {
   const router = useRouter();
 
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [page, setPage] = useState(1); // Track the current page number
-  const [isLoading, setIsLoading] = useState(true); // For the initial load
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // For subsequent loads
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchInitialMovies = async () => {
       setIsLoading(true);
       try {
-        const initialMovies = await getAllMovies(1); // Fetch page 1
+        const initialMovies = await getAllMovies(1);
         setMovies(initialMovies);
-        setPage(1); // Reset page to 1
+        setPage(1);
         setHasMore(initialMovies.length > 0);
       } catch (error) {
         console.error("Failed to fetch initial movies:", error);
@@ -35,7 +35,6 @@ const AllMoviesPage = () => {
   }, []);
 
   const loadMore = async () => {
-    // Prevent fetching if we are already loading or if there are no more pages
     if (isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
@@ -44,11 +43,9 @@ const AllMoviesPage = () => {
       const newMovies = await getAllMovies(nextPage);
 
       if (newMovies.length > 0) {
-        // Append the new movies to the existing list
         setMovies(prevMovies => [...prevMovies, ...newMovies]);
         setPage(nextPage);
       } else {
-        // No more movies were returned, so we've reached the end
         setHasMore(false);
       }
     } catch (error) {
@@ -74,10 +71,9 @@ const AllMoviesPage = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
 
         // --- PAGINATION PROPS ---
-        onEndReached={loadMore} // Trigger 'loadMore' when the end of the list is reached
-        onEndReachedThreshold={0.5} // How close to the end (in screen lengths) to trigger
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
         ListFooterComponent={() => 
-          // Show a loading spinner at the bottom while fetching more
           isLoadingMore && <ActivityIndicator size="large" color="#FF6B6B" className="my-4" />
         }
 
