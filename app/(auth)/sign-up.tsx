@@ -62,7 +62,7 @@ const SignUp = () => {
           />
 
           <FormField
-            title="Регистрийн дугаар"
+            title="Утасны дугаар дахин оруулах"
             value={form.registrationId}
             handleChangeText={(e) => setForm({ ...form, registrationId: e })}
             otherStyles="mt-7"

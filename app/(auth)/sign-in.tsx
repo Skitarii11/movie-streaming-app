@@ -150,7 +150,7 @@ const SignIn = () => {
             {forgotPasswordStep === 'enterId' && (
               <>
                 <FormField
-                  title="Регистрийн дугаар"
+                  title="Утасны дугаар"
                   value={resetForm.registrationId}
                   handleChangeText={(e) => setResetForm({ ...resetForm, registrationId: e })}
                   otherStyles="mt-7"
@@ -170,7 +170,7 @@ const SignIn = () => {
                   value={resetForm.newPassword}
                   handleChangeText={(e) => setResetForm({ ...resetForm, newPassword: e })}
                   otherStyles="mt-7"
-                  placeholder="Enter your new password"
+                  placeholder="Шинэ нууц үгээ оруулна уу"
                   isPassword={true}
                 />
                 <CustomButton title="Reset Password" handlePress={handleResetPassword} containerStyles="mt-7" isLoading={isSubmitting} />
