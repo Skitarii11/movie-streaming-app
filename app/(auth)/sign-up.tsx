@@ -66,7 +66,7 @@ const SignUp = () => {
             value={form.registrationId}
             handleChangeText={(e) => setForm({ ...form, registrationId: e })}
             otherStyles="mt-7"
-            placeholder="e.g., AB12345678"
+            placeholder="Your phone number"
           />
 
           <FormField

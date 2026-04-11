@@ -154,7 +154,7 @@ const SignIn = () => {
                   value={resetForm.registrationId}
                   handleChangeText={(e) => setResetForm({ ...resetForm, registrationId: e })}
                   otherStyles="mt-7"
-                  placeholder="Enter your registration ID"
+                  placeholder="Утасны дугаараа оруулна уу"
                 />
                 <CustomButton title="Verify" handlePress={handleVerifyId} containerStyles="mt-7" isLoading={isSubmitting} />
                 <TouchableOpacity onPress={() => setForgotPasswordStep('default')} className="mt-5">
