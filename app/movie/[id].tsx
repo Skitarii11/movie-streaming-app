@@ -28,6 +28,7 @@ import {
   removeFavorite,
 } from "@/services/appwrite";
 import useFetch from "@/services/usefetch";
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 interface DeepLink {
   name: string;
@@ -96,6 +97,26 @@ const MovieDetails = () => {
     await refetchFavorites();
   };
 
+  useEffect(() => {
+    const lockToPortrait = async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+
+    const unlockRotation = async () => {
+      await ScreenOrientation.unlockAsync();
+    };
+
+    if (isPlayingTrailer) {
+      unlockRotation();
+    } else {
+      lockToPortrait();
+    }
+
+    return () => {
+      lockToPortrait();
+    };
+  }, [isPlayingTrailer]);
+
   // --- EFFECT FOR CLEANUP ---
   useEffect(() => {
     return () => {
@@ -153,15 +174,15 @@ const MovieDetails = () => {
   };
 
   const handleDeepLinkPress = async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      Alert.alert(
-        "App Not Found",
-        "The selected banking app is not installed on your device.",
-      );
-    }
+    try {
+    await Linking.openURL(url);
+  } catch (error) {
+    console.error("Link error:", error);
+    Alert.alert(
+      "App Not Found",
+      "The selected banking app is not installed on your device or could not be opened."
+    );
+  }
   };
 
   const pollForPayment = (purchaseId: string) => {
@@ -482,6 +503,7 @@ const MovieDetails = () => {
       {/* --- TRAILER MODAL --- */}
       <Modal
         visible={isPlayingTrailer}
+        supportedOrientations={['portrait', 'landscape']}
         onRequestClose={() => setIsPlayingTrailer(false)}
       >
         <View style={styles.videoContainer}>

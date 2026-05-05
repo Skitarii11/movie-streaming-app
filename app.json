@@ -2,7 +2,7 @@
   "expo": {
     "name": "DX Kino",
     "slug": "Choco",
-    "version": "4.0.2",
+    "version": "4.7.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -12,7 +12,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.movie.Choco",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": [
+          "khanbank", "tdbbank", "socialpay-payment", "xacbank",
+          "statebankmongolia", "most", "bogdbank", "capitronbank",
+          "ckbank", "transbank", "nibank", "arig"
+        ]
       }
     },
     "android": {
@@ -21,10 +26,42 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.movie.Choco",
-      "versionCode": 42,
+      "versionCode": 47,
       "buildOptions": {
         "android-16kb-page-size": true
-      }
+      },
+      "queries": [
+        {
+          "intent": [
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "khanbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "tdbbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "socialpay-payment" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "xacbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "statebank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "most" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "tdbbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "bogdbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "capitron" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "ckb" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "transbank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "nibank" } },
+            { "action": "android.intent.action.VIEW", "data": { "scheme": "arig" } }
+            
+          ]
+        },
+        { "package": "com.khanbank.retail" },
+        { "package": "com.tdb.corporate" },
+        { "package": "mn.egolomt.socialpay" },
+        { "package": "mn.xacbank.xac" },
+        { "package": "com.statebank.retail" },
+        { "package": "mn.most.app" },
+        { "package": "com.bogdbank.bogdbank" },
+        { "package": "com.capitron.smart" },
+        { "package": "com.ckb.ibank" },
+        { "package": "com.transbank.trans" },
+        { "package": "mn.nibank.smart" },
+        { "package": "com.arig.bank" }
+      ]
     },
     "web": {
       "bundler": "metro",
